@@ -53,5 +53,15 @@ Writes the deployed address to `packages/shared/src/addresses.json` (never
 hardcode). Constructor: `Suite(usdcAddress, ownerAddress)`. The Suite ABI is
 exported to `packages/shared/src/abis/Suite.json` for the frontend.
 
-**Verify the Fuji USDC address** in `addresses.json` against the thirdweb x402
-facilitator config before relying on it — a wrong token makes x402 fail silently.
+### Fuji USDC address — verified
+
+`addresses.json` uses `0x5425890298aed601595a70AB815c96711a31Bc65`. Confirmed:
+- Circle's official USDC address list (chain 43113) and Snowtrace.
+- The Avalanche Builder Hub **x402** network-setup docs use this exact token for
+  x402 on Fuji — since x402 requires EIP-3009 `transferWithAuthorization`, its use
+  of this token is proof of gasless support.
+- Valid EIP-55 checksum (viem-safe; won't throw at runtime).
+
+Not done here: a live RPC round-trip (Fuji RPC is egress-blocked in this
+environment). Optional sanity check on your machine:
+`cast call 0x5425890298aed601595a70AB815c96711a31Bc65 "symbol()(string)" --rpc-url $FUJI_RPC_URL` → `USDC`.
