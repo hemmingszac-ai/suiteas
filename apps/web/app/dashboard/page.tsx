@@ -6,16 +6,17 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { PoolFigure } from "@/components/pool-figure";
 import { WalletStatus } from "@/components/wallet-status";
+import { MOCK_POOL_USD, PREVIEW_MOCK } from "@/lib/config/preview";
 
 export default function Dashboard() {
   const { ready, authenticated } = usePrivy();
   const router = useRouter();
 
   useEffect(() => {
-    if (ready && !authenticated) router.replace("/");
+    if (!PREVIEW_MOCK && ready && !authenticated) router.replace("/");
   }, [ready, authenticated, router]);
 
-  if (!ready || !authenticated) {
+  if (!PREVIEW_MOCK && (!ready || !authenticated)) {
     return (
       <main className="mx-auto max-w-3xl px-6 py-16 text-sm text-muted">Loading…</main>
     );
@@ -31,7 +32,7 @@ export default function Dashboard() {
         <WalletStatus />
       </header>
 
-      <PoolFigure />
+      <PoolFigure usd={PREVIEW_MOCK ? MOCK_POOL_USD : undefined} />
 
       {/* The single primary action. Pay-what-you-can, zero allowed. */}
       <div className="mt-8 flex flex-col items-center gap-3">

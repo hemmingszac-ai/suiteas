@@ -1,6 +1,7 @@
 "use client";
 
 import { usePrivy, useWallets } from "@privy-io/react-auth";
+import { MOCK_ADDRESS, PREVIEW_MOCK } from "@/lib/config/preview";
 
 function truncate(addr: string) {
   return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
@@ -11,7 +12,10 @@ export function WalletStatus() {
   const { user } = usePrivy();
   const { wallets } = useWallets();
 
-  const address = wallets[0]?.address ?? user?.wallet?.address;
+  const address =
+    wallets[0]?.address ??
+    user?.wallet?.address ??
+    (PREVIEW_MOCK ? MOCK_ADDRESS : undefined);
 
   if (!address) {
     return <p className="text-sm text-muted">No wallet yet…</p>;
