@@ -42,6 +42,15 @@ sign-in-with-wallet (toward Lumin's verifiable-credentials world), the AccessPas
 can carry attestations later. Payments + identity are the same act here, which
 is exactly the "Payments + Identity" track.
 
+**Frictionless identity creation is the "intuitive + secure" half of the pitch.**
+Privy's "automatically create embedded wallets on login" means a user logs in
+with an email and *instantly* has a self-custodial Avalanche wallet — no seed
+phrase, no personal data handed over, no crypto knowledge required. That single
+setting is what makes the identity both secure (self-custodial, on Avalanche)
+and intuitive (feels like a normal email signup). The wallet is created for them;
+they never see key management. That is the "modern, secure, intuitive digital
+identity" the Lumin identity track is asking for.
+
 ## Where to spend today
 
 1. **Avalanche + Overall** — the live loop. Two biggest prizes, one demo.
