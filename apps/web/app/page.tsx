@@ -6,10 +6,17 @@ export default function Home() {
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col items-center justify-center gap-8 px-6 text-center">
       <div className="space-y-4">
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Suiteas</h1>
+        <p className="text-sm font-medium uppercase tracking-wide text-accent">Suiteas</p>
+        <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-6xl">
+          Pay what you can.
+          <br />
+          Even&nbsp;$0.
+        </h1>
         <p className="mx-auto max-w-xl text-lg text-muted">
-          One subscription, every tool. Pay what you can — micropayments split
-          on-chain by usage, settling on Avalanche in about a second.
+          One subscription, every tool. Contribute whatever you like — nothing is
+          fine — and get access to the whole bundle. What you pay is split on-chain
+          between products by how much you actually use them, settling on Avalanche
+          in about a second.
         </p>
       </div>
 

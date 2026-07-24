@@ -4,18 +4,8 @@ import { usePrivy } from "@privy-io/react-auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { PoolFigure } from "@/components/pool-figure";
 import { WalletStatus } from "@/components/wallet-status";
-import { features } from "@/lib/config/features";
-
-/**
- * "Manage everything" home. Each panel is gated by a feature flag, so this
- * page grows as flags flip on — no routing changes needed.
- */
-const panels: { flag: keyof typeof features; title: string; body: string }[] = [
-  { flag: "topUp", title: "Top up", body: "Add funds to the shared pool (koha)." },
-  { flag: "launchCoin", title: "Launch coin", body: "Mint and launch a token." },
-  { flag: "explorer", title: "Explorer", body: "Watch the pool split live." },
-];
 
 export default function Dashboard() {
   const { ready, authenticated } = usePrivy();
@@ -27,39 +17,35 @@ export default function Dashboard() {
 
   if (!ready || !authenticated) {
     return (
-      <main className="mx-auto max-w-4xl px-6 py-16 text-sm text-muted">Loading…</main>
+      <main className="mx-auto max-w-3xl px-6 py-16 text-sm text-muted">Loading…</main>
     );
   }
 
-  const active = panels.filter((p) => features[p.flag]);
-
   return (
-    <main className="mx-auto max-w-4xl px-6 py-12">
-      <header className="mb-8 flex items-center justify-between">
+    <main className="mx-auto max-w-3xl px-6 py-12">
+      <header className="mb-10 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-          <p className="text-sm text-muted">Manage your Suiteas account.</p>
+          <h1 className="text-2xl font-semibold tracking-tight">Your Suiteas</h1>
+          <p className="text-sm text-muted">One contribution, the whole bundle.</p>
         </div>
         <WalletStatus />
       </header>
 
-      {active.length === 0 ? (
-        <div className="rounded-xl border border-ink/10 p-8 text-sm text-muted">
-          No features enabled yet. Flip a flag in{" "}
-          <code>lib/config/features.ts</code> to light up a panel here.
-        </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
-          {active.map((p) => (
-            <div key={p.flag} className="rounded-xl border border-ink/10 p-6">
-              <h2 className="font-medium">{p.title}</h2>
-              <p className="mt-1 text-sm text-muted">{p.body}</p>
-            </div>
-          ))}
-        </div>
-      )}
+      <PoolFigure />
 
-      <p className="mt-10 text-xs text-muted">
+      {/* The single primary action. Pay-what-you-can, zero allowed. */}
+      <div className="mt-8 flex flex-col items-center gap-3">
+        <button
+          type="button"
+          className="w-full max-w-sm rounded-xl bg-ink px-6 py-4 text-base font-medium text-paper transition hover:bg-ink/90"
+          onClick={() => alert("Contribution flow (x402) is wired next.")}
+        >
+          Contribute koha
+        </button>
+        <p className="text-xs text-muted">Pay what you can — $0 still gets you in.</p>
+      </div>
+
+      <p className="mt-12 text-xs text-muted">
         <Link href="/" className="underline">
           ← Home
         </Link>

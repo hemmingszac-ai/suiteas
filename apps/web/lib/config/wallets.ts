@@ -28,13 +28,15 @@ export interface WalletOption {
 }
 
 export const walletOptions: WalletOption[] = [
-  // Primary: Avalanche Core (detected as an injected wallet).
-  { id: "core", label: "Avalanche Core", wallet: "detected_wallets", enabled: true },
-  // Email -> embedded Avalanche wallet, no seed phrase. Zero-payer friendly.
+  // Hero path: email -> embedded Avalanche wallet, no seed phrase. Zero-payer
+  // friendly and the fastest on-stage login.
   { id: "email", label: "Email", loginMethod: "email", enabled: true },
-  { id: "metamask", label: "MetaMask", wallet: "metamask", enabled: true },
+  // Primary wallet: Avalanche Core (detected as an injected wallet). Sponsor.
+  { id: "core", label: "Avalanche Core", wallet: "detected_wallets", enabled: true },
+  // Catch-all for every other wallet, incl. Core mobile.
   { id: "walletconnect", label: "WalletConnect", wallet: "wallet_connect", enabled: true },
-  { id: "coinbase", label: "Coinbase Wallet", wallet: "coinbase_wallet", enabled: true },
+  // Add a sponsor-specific wallet back ONLY if a prize track requires it, e.g.:
+  // { id: "coinbase", label: "Coinbase Wallet", wallet: "coinbase_wallet", enabled: false },
 ];
 
 const enabled = walletOptions.filter((o) => o.enabled);
