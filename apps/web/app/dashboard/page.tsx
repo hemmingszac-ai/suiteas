@@ -4,9 +4,10 @@ import { usePrivy } from "@privy-io/react-auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { PoolFigure } from "@/components/pool-figure";
+import { ContributeButton } from "@/components/contribute-button";
+import { LivePoolFigure } from "@/components/live-pool-figure";
 import { WalletStatus } from "@/components/wallet-status";
-import { MOCK_POOL_USD, PREVIEW_MOCK } from "@/lib/config/preview";
+import { PREVIEW_MOCK } from "@/lib/config/preview";
 
 export default function Dashboard() {
   const { ready, authenticated } = usePrivy();
@@ -32,17 +33,11 @@ export default function Dashboard() {
         <WalletStatus />
       </header>
 
-      <PoolFigure usd={PREVIEW_MOCK ? MOCK_POOL_USD : undefined} />
+      <LivePoolFigure />
 
-      {/* The single primary action. Pay-what-you-can, zero allowed. */}
+      {/* The single primary action: pay a koha over x402. */}
       <div className="mt-8 flex flex-col items-center gap-3">
-        <button
-          type="button"
-          className="w-full max-w-sm rounded-xl bg-ink px-6 py-4 text-base font-medium text-paper transition hover:bg-ink/90"
-          onClick={() => alert("Contribution flow (x402) is wired next.")}
-        >
-          Contribute koha
-        </button>
+        <ContributeButton />
         <p className="text-xs text-muted">Pay what you can — $0 still gets you in.</p>
         <p className="max-w-sm text-center text-xs text-muted">
           This wallet is your only identity here — no product in the bundle got your
