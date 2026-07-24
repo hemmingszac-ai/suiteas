@@ -4,6 +4,7 @@ import { usePrivy } from "@privy-io/react-auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { AccessPassCard } from "@/components/access-pass-card";
 import { ContributeButton } from "@/components/contribute-button";
 import { LivePoolFigure } from "@/components/live-pool-figure";
 import { WalletStatus } from "@/components/wallet-status";
@@ -44,6 +45,8 @@ export default function Dashboard() {
           personal details.
         </p>
       </div>
+
+      <AccessPassCard />
 
       <p className="mt-12 text-xs text-muted">
         <Link href="/" className="underline">
