@@ -20,6 +20,12 @@ export default function Home() {
         </p>
       </div>
 
+      <ul className="flex flex-col gap-2 text-sm text-muted sm:flex-row sm:gap-6">
+        <li>✓ Pay what you can — even&nbsp;$0</li>
+        <li>✓ One wallet, one identity — no personal details handed over</li>
+        <li>✓ Split on-chain by usage</li>
+      </ul>
+
       {isEnabled("login") ? (
         <LoginButton />
       ) : (

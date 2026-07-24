@@ -1,90 +1,112 @@
 /**
- * Sponsor + prize-track registry.
+ * Prize-track registry — what Suiteas is judged against at Web3NZ 2026.
  *
- * The whole app is meant to be tailored to these. Keep this list honest:
- *  - status "confirmed": load-bearing in the repo docs / verified for this event.
- *  - status "likely":    sponsored a sibling Web3NZ event or strongly implied.
- *  - status "todo":      fill in from the event slides (prize deck).
+ * This is the source of truth for how the build maps to prizes. Editing it is
+ * how we re-tailor the demo. `fit` is our honest current relevance; `todo` is
+ * the smallest move to strengthen it.
  *
- * Editing this list is how you re-tailor the demo to the prizes. `walletFor`
- * and the dashboard read from here, so a sponsor added here surfaces in the UI.
+ * Amounts are filled where known. Sponsor-track $ amounts still need the slides.
  */
 
-export type SponsorStatus = "confirmed" | "likely" | "todo";
+export type TrackFit =
+  | "core" // the build IS this track
+  | "strong" // strong, mostly framing/polish away
+  | "partial" // half there; a real but small build closes it
+  | "stretch" // off-thesis; only if we finish early
+  | "meta"; // non-code (content, commit count)
 
-export interface Sponsor {
+export interface PrizeTrack {
   id: string;
   name: string;
-  status: SponsorStatus;
-  /** What they provide that we use. */
-  tech: string;
-  /** Prize-track name, if they run one. Fill from the slides. */
-  track?: string;
-  /** One line: how Suiteas already targets this track. */
+  sponsor?: string;
+  prize?: string;
+  fit: TrackFit;
+  /** How Suiteas targets it today. */
   howWeHitIt: string;
-  /** True if their tech is already core to the build (not bolt-on). */
-  loadBearing: boolean;
-  /** Optional wallet-option id (see wallets.ts) this sponsor maps to. */
-  walletId?: string;
+  /** Smallest move to strengthen / what's still missing. */
+  todo?: string;
 }
 
-export const sponsors: Sponsor[] = [
+export const prizeTracks: PrizeTrack[] = [
   {
     id: "avalanche",
-    name: "Avalanche",
-    status: "confirmed",
-    tech: "Fuji testnet (43113), Core wallet, ~1s finality",
-    track: "Best on Avalanche",
+    name: "Avalanche C-Chain",
+    sponsor: "Avalanche",
+    fit: "core",
     howWeHitIt:
-      "Entire app runs on Fuji; Core is the primary wallet; sub-second settlement is the demo's money shot.",
-    loadBearing: true,
-    walletId: "core",
+      "Entire app on Fuji (C-Chain): Core wallet, native USDC, Suite pool contract, x402 settlement in ~1s. The anchor track.",
   },
   {
-    id: "thirdweb",
-    name: "thirdweb",
-    status: "confirmed",
-    tech: "x402 facilitator (x402-next middleware)",
-    track: "x402 / agentic payments",
+    id: "overall",
+    name: "Overall — 1st / 2nd / 3rd",
+    prize: "$1300 / $650 / $400",
+    fit: "strong",
     howWeHitIt:
-      "Koha IS x402 — per-request micropayments over HTTP 402. This is the core mechanic, not a feature.",
-    loadBearing: true,
+      "x402 micropayments + trustless on-chain split + the koha story is differentiated and technically real.",
+    todo: "Get the full loop working live: pay -> pool -> distribute() -> counter.",
   },
   {
-    id: "circle",
-    name: "Circle",
-    status: "confirmed",
-    tech: "USDC (native Fuji USDC, EIP-3009 gasless)",
-    track: "Best use of USDC / stablecoin payments",
+    id: "kiwiana",
+    name: "Cryptocurrency NZ / Kiwiana",
+    sponsor: "Cryptocurrency NZ",
+    fit: "strong",
     howWeHitIt:
-      "Every payment settles in USDC; zero-amount contributions still mint access — stablecoin UX thesis.",
-    loadBearing: true,
+      "'Koha' is te reo Māori — gift / reciprocity. Pay-what-you-can (incl. $0) into a collective bundle is a kiwiana thesis, already baked in.",
+    todo: "Lean into it: framing, copy, te reo in the UI.",
   },
   {
-    id: "privy",
-    name: "Privy",
-    status: "confirmed",
-    tech: "Email/social login -> embedded Avalanche wallet",
-    track: "Best consumer UX / onboarding",
+    id: "lumin-identity",
+    name: "Lumin — Digital Identity",
+    sponsor: "Lumin",
+    fit: "strong",
     howWeHitIt:
-      "No-seed-phrase login; email users get an embedded wallet and can pay koha in under 3s.",
-    loadBearing: true,
-    walletId: "email",
+      "One wallet = one identity across every product in the bundle. You don't hand personal data to each SaaS — you log in with your Avalanche wallet (Privy email -> embedded wallet). Self-sovereign, pseudonymous, portable.",
+    todo: "Make the AccessPass the on-chain membership credential; optionally add a verifiable-credential/attestation layer to go deeper than sign-in-with-wallet.",
   },
   {
-    id: "base",
-    name: "Base / Coinbase",
-    status: "likely",
-    tech: "Coinbase Wallet connector",
-    track: "TODO — confirm from slides",
-    howWeHitIt: "Coinbase Wallet is offered on the login screen.",
-    loadBearing: false,
-    walletId: "coinbase",
+    id: "lumin-payments-identity",
+    name: "Lumin — Payments + Identity",
+    sponsor: "Lumin",
+    fit: "strong",
+    howWeHitIt:
+      "Payments (x402/USDC) and identity (wallet-as-login, no PII shared) in one flow: your identity authorises the payment, the payment grants access — no signup form, no data handed over.",
+    todo: "Tie the AccessPass credential to the payment so identity + payment are visibly one act.",
   },
-  // TODO: add remaining sponsors + real prize tracks from the event slides.
-  // Template:
-  // { id: "", name: "", status: "todo", tech: "", track: "", howWeHitIt: "", loadBearing: false },
+  {
+    id: "dnzd",
+    name: "New Money — Digital NZD",
+    sponsor: "(Digital NZD sponsor)",
+    fit: "partial",
+    howWeHitIt:
+      "The x402 rail is token-agnostic — koha can settle in a NZD stablecoin instead of / alongside USDC.",
+    todo: "Point the x402 asset at the DNZD Fuji test token (config change). Need its address.",
+  },
+  {
+    id: "fireeyes",
+    name: "FireEyes — Governance",
+    sponsor: "FireEyes",
+    fit: "stretch",
+    howWeHitIt:
+      "Not a governance project. Weak angle: member governance over split parameters / the oracle wallet.",
+    todo: "Skip unless we finish early — pulls against the thesis.",
+  },
+  {
+    id: "content",
+    name: "Best content creation",
+    prize: "$200",
+    fit: "meta",
+    howWeHitIt: "Non-code. Demo video of the money-shot + write-up; docs are strong source material.",
+  },
+  {
+    id: "commits",
+    name: "Most commits",
+    prize: "$200",
+    fit: "meta",
+    howWeHitIt: "Small, frequent commits (already our style per CLAUDE.md). Don't sacrifice quality to game it.",
+  },
 ];
 
-/** Sponsors whose tech is core to the build — lead with these in the pitch. */
-export const loadBearingSponsors = sponsors.filter((s) => s.loadBearing);
+/** Tracks the build already nails or is close on — lead with these. */
+export const winnableTracks = prizeTracks.filter((t) =>
+  ["core", "strong"].includes(t.fit),
+);

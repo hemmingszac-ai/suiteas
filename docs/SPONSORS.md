@@ -1,83 +1,59 @@
-# SPONSORS — prize alignment strategy
+# SPONSORS — prize-track strategy
 
-**Status: partial.** Built from confirmed sponsors (repo docs + research). The
-prize-track names/amounts and any sponsor not listed below must be filled from
-the event slides. Source of truth in code: `apps/web/lib/config/sponsors.ts`.
+How Suiteas maps to the Web3NZ 2026 prize tracks. Source of truth in code:
+`apps/web/lib/config/sponsors.ts`. Event: UC, 24–27 July 2026, $25k+ prizes.
 
-Event: Web3NZ Hackathon, University of Canterbury, 24–27 July 2026. 48h, **$25k+ prizes**.
+**Still needed from the slides:** exact $ for the sponsor tracks (Avalanche,
+Lumin, FireEyes, CryptoNZ, DNZD) and the FireEyes/Lumin judging criteria. The
+FireEyes (governance) and Lumin (digital identity / verifiable credentials)
+reads below are grounded in web research, not the deck — confirm against it.
 
----
-
-## What we know vs. what we need
-
-| Known | Source |
-|---|---|
-| Chain = Avalanche Fuji; Core is the primary wallet | `ARCHITECTURE.md`, `SETUP.md` |
-| x402 rail via thirdweb facilitator | `ARCHITECTURE.md`, `docs/X402.md` |
-| USDC (Circle) is the settlement currency | `ARCHITECTURE.md` |
-| Privy for login + embedded wallets | `AGENTS.md`, `SETUP.md` |
-| $25k+ prizes, UC Crypto Society DAO | web3nz.xyz, cryptocurrency.org.nz |
-| Sibling 2025 event ran Base / ETHGlobal / Easy Crypto | UoA news, Easy Crypto |
-
-**Still needed from the slides (the only real blocker):**
-1. Exact prize-track names + $ amounts.
-2. Full sponsor list (esp. any wallet / infra / stablecoin / RWA / AI sponsor).
-3. Any "must integrate X to qualify for track Y" rules.
-
-Drop these into `sponsors.ts` and this doc updates in minutes.
+Known amounts: Overall 1st/2nd/3rd = **$1300 / $650 / $400**; Best content and
+Most commits = **$200** each.
 
 ---
 
-## Sponsor → architecture → prize map
+## Relevance matrix
 
-The thesis: **Suiteas is already unusually well-aligned.** x402 micropayments +
-on-chain revenue split + embedded-wallet onboarding hits the four load-bearing
-sponsors *by construction*, not by bolting on integrations.
-
-| Sponsor | Their tech | How we hit their track | Strength |
+| Track | Fit | Why | Smallest move |
 |---|---|---|---|
-| **Avalanche** | Fuji, Core, ~1s finality | Whole app on Fuji; Core primary; live pool tick-up is the demo | ⭐⭐⭐ core |
-| **thirdweb / x402** | HTTP 402 facilitator | Koha *is* x402 per-request payment — the core mechanic | ⭐⭐⭐ core |
-| **Circle** | USDC, EIP-3009 gasless | Every payment settles USDC; zero-amount still works | ⭐⭐⭐ core |
-| **Privy** | Email → embedded wallet | No-seed onboarding; pay in <3s | ⭐⭐⭐ core |
-| **Base/Coinbase** | Coinbase Wallet | Offered on login screen | ⭐ bolt-on |
-| _(from slides)_ | — | — | fill in |
+| **Avalanche C-Chain** | 🟢 core | The whole build is this — Fuji, Core, USDC, Suite, x402, ~1s | Nothing; make the split shine. **Anchor.** |
+| **Overall 1/2/3** | 🟢 strong | x402 + on-chain split + koha is differentiated + real | Get the loop working live |
+| **CryptoNZ / Kiwiana** | 🟢 strong | **"Koha" is te reo Māori** — gift/reciprocity; $0-included | Framing, copy, te reo in UI |
+| **Lumin — Digital Identity** | 🟢 strong | One wallet = one identity across the bundle; no PII handed to each SaaS. Self-sovereign login | AccessPass as credential; optional attestation layer |
+| **Lumin — Payments + Identity** | 🟢 strong | Identity authorises the payment; payment grants access — one act, no signup form | Tie AccessPass to the payment |
+| **New Money — Digital NZD** | 🟡 partial | Rail is token-agnostic; koha can settle in NZD | Point x402 asset at DNZD token (need address) |
+| **FireEyes — Governance** | 🔴 stretch | Not a governance project | Skip unless early |
+| **Best content** ($200) | ⚪ meta | Non-code | Demo video + write-up |
+| **Most commits** ($200) | ⚪ meta | Already small/frequent | Keep committing |
 
-If a sponsor on the slides isn't covered here, that's the gap list to close.
+## The identity thesis (why Lumin is a real fit, not a stretch)
 
----
+The default web2 SaaS bundle makes you hand your personal details to every
+product you sign up for. Suiteas inverts that: **your Avalanche wallet is your
+one identity for the whole bundle.** Privy turns an email into an embedded
+wallet (no seed phrase, no PII to the member products); you log in with the
+wallet; the AccessPass NFT is your membership credential. You pay-what-you-can
+and get access to every product **without giving your identity away N times.**
 
-## Where the build is already strong
+That is a digital-identity story — pseudonymous, portable, user-controlled — and
+it's inherent to the architecture, not bolted on. To go deeper than
+sign-in-with-wallet (toward Lumin's verifiable-credentials world), the AccessPass
+can carry attestations later. Payments + identity are the same act here, which
+is exactly the "Payments + Identity" track.
 
-The four money flows (`docs/FLOWS.md`) map cleanly onto sponsor tech:
+## Where to spend today
 
-1. **Subscribe** (escrow + AccessPass NFT) → Avalanche contracts.
-2. **Micro-koha** (x402 per request) → thirdweb + Circle. **This is the wow.**
-3. **Split** (pool → members pro-rata) → Avalanche, permissionless.
-4. **Member ↔ member** (SaaS pay each other) → x402 again — the differentiator.
+1. **Avalanche + Overall** — the live loop. Two biggest prizes, one demo.
+2. **Kiwiana** — mostly framing around koha; already true. Near-free.
+3. **Lumin identity** — make the "one identity, no PII" value prop explicit in
+   the UI (cheap) + AccessPass credential (real but small).
+4. **DNZD** — ~1hr config change *if* the token exists on Fuji. Best ROI add.
+5. **Skip** FireEyes governance unless finished early.
 
-The demo the README protects — pay a few cents, pool ticks up, splits on-chain,
-one product pays another — is a **single narrative that lights up 4 sponsors at
-once**. That's the winning structure; don't fragment it into per-sponsor demos.
+## The demo that covers the most tracks at once
 
-## Where to add, in priority order (36h)
-
-Tailored so each build step banks another track. Adjust once slides land.
-
-1. **x402 test route returns 402 → settles USDC at `payTo`** (the Suite contract).
-   This one integration proves Avalanche + thirdweb + Circle simultaneously.
-   Highest ROI. (Smoke-test item F in `SETUP.md`.)
-2. **Login + embedded wallet** (done — scaffolded) → banks Privy.
-3. **Live pool counter / explorer** → the visual that sells the Avalanche track.
-4. **Split settlement on-chain** → completes the Avalanche + Circle story.
-5. **Member→member call** → the differentiator; strongest single "flow 4" moment.
-6. Only then: any sponsor-specific bolt-on a track *requires* (from slides).
-
-Everything past step 5 is optional and gated behind `features.ts` flags so it
-can be cut without touching the core demo.
-
-## Anti-scope reminder
-
-Per `docs/SCOPE.md`: no mainnet, no real money, no fungible token unless a prize
-track explicitly rewards a launch. "Top up" and "launch coin" are `features.ts`
-flags kept `false` until a track justifies them — don't build them on spec.
+Pay koha with your wallet (identity + payment, no signup) → pool ticks up on
+Avalanche → splits on-chain by usage → one product pays another. That single
+narrative lights up Avalanche, Overall, Kiwiana, and both Lumin tracks. Don't
+fragment it per-sponsor.

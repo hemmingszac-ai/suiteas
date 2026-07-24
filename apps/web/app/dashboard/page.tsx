@@ -44,6 +44,10 @@ export default function Dashboard() {
           Contribute koha
         </button>
         <p className="text-xs text-muted">Pay what you can — $0 still gets you in.</p>
+        <p className="max-w-sm text-center text-xs text-muted">
+          This wallet is your only identity here — no product in the bundle got your
+          personal details.
+        </p>
       </div>
 
       <p className="mt-12 text-xs text-muted">
