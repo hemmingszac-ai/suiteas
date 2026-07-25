@@ -15,7 +15,7 @@ import {
   type Address,
 } from "viem";
 import { decodeXPaymentResponse, wrapFetchWithPayment } from "x402-fetch";
-import type { NetworkId } from "./SuiteasPayModal";
+import type { NetworkId } from "./suiteas-pay-modal";
 
 export const FUJI_CHAIN_ID = 43_113;
 const FUJI_CHAIN_ID_HEX = "0xa869";
@@ -79,7 +79,9 @@ async function ensureFuji(provider: Eip1193Provider) {
 /** Connects the injected wallet, switches to Fuji, and reads the USDC balance. */
 export async function connectWallet(): Promise<{ address: string; balance: number }> {
   const provider = getProvider();
-  const [address] = (await provider.request({ method: "eth_requestAccounts" })) as string[];
+  const accounts = (await provider.request({ method: "eth_requestAccounts" })) as string[];
+  const [address] = accounts;
+  if (!address) throw new Error("No account returned by the wallet.");
   await ensureFuji(provider);
   const publicClient = createPublicClient({ chain: fujiChain, transport: http(FUJI_RPC) });
   const raw = (await publicClient.readContract({

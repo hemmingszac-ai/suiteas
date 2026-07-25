@@ -8,6 +8,7 @@ import React, {
   useState,
 } from "react";
 import { PRODUCTS, Product } from "./products";
+import { SubscribeModal } from "./subscribe-modal";
 import "./kiwi-stack-marketplace.css";
 
 /* ------------------------------------------------------------------ */
@@ -47,15 +48,6 @@ const AVALANCHE_CHAIN = {
   blockExplorerUrls: ["https://testnet.snowtrace.io/"],
 };
 
-/**
- * Where subscription payments land. Set to the same demo payTo wallet used by
- * the rest of the app (apps/web/lib/x402.ts) so everything settling in this
- * hackathon build lands in one place. Later, replace the plain transfer in
- * handleSubscribe with a call to your soulbound-NFT subscription contract
- * (ERC-721 with transfers disabled) so subscribers get an on-chain access pass.
- */
-const TREASURY_ADDRESS = "0x03623dca4523Ab827E6e4A144BcE2Df8e46F0a72";
-
 /** Monthly price per premium product, in USD. Staggered from $6 to $45. */
 const PREMIUM_PRICES_USD: Record<string, number> = {
   "SP-002": 12, // Doorstep
@@ -72,35 +64,12 @@ const PREMIUM_PRICES_USD: Record<string, number> = {
   "SP-031": 6,  // FinalFix
 };
 
-/** Demo conversion rate used to turn USD prices into AVAX at checkout. */
-const AVAX_USD_RATE = 25;
-
 function priceUsd(code: string): number {
   return PREMIUM_PRICES_USD[code] ?? 15;
 }
 
-/** USD price converted to AVAX and expressed in wei, as a hex string. */
-function priceWeiHex(usd: number): string {
-  const gwei = Math.round((usd / AVAX_USD_RATE) * 1e9);
-  return "0x" + (BigInt(gwei) * BigInt("1000000000")).toString(16);
-}
-
 const SEARCH_PLACEHOLDER =
   "Say what you need, let us find the perfect stack for you";
-
-/** The suiteas hash-weave mark, from assets/logo/suiteas-mark.svg. */
-const SUITEAS_MARK = (
-  <svg viewBox="0 0 200 200" aria-hidden="true">
-    <rect x="60" y="12" width="24" height="98" fill="#201e1d" />
-    <rect x="60" y="146" width="24" height="42" fill="#201e1d" />
-    <rect x="116" y="12" width="24" height="42" fill="#201e1d" />
-    <rect x="116" y="90" width="24" height="98" fill="#201e1d" />
-    <rect x="12" y="60" width="42" height="24" fill="#201e1d" />
-    <rect x="90" y="60" width="98" height="24" fill="#201e1d" />
-    <rect x="12" y="116" width="98" height="24" fill="#ec3013" />
-    <rect x="146" y="116" width="42" height="24" fill="#ec3013" />
-  </svg>
-);
 
 /* ------------------------------------------------------------------ */
 /* Browser API typings (wallet + speech) not present in standard TS libs */
@@ -249,10 +218,6 @@ function useAvalancheWallet() {
   return { status, address, error, connect };
 }
 
-function shortAddress(addr: string): string {
-  return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
-}
-
 /* ------------------------------------------------------------------ */
 /* Voice search hook                                                   */
 /* ------------------------------------------------------------------ */
@@ -360,6 +325,7 @@ function ProductCard({
 export default function KiwiStackMarketplace() {
   const [query, setQuery] = useState("");
   const [subscribeNotice, setSubscribeNotice] = useState<string | null>(null);
+  const [subscribeProduct, setSubscribeProduct] = useState<Product | null>(null);
   const wallet = useAvalancheWallet();
   const voice = useVoiceSearch((transcript) => setQuery(transcript));
   const inputRef = useRef<HTMLInputElement>(null);
@@ -390,78 +356,32 @@ export default function KiwiStackMarketplace() {
 
   const walletConnected = wallet.status === "connected";
 
-  const handleSubscribe = useCallback(
-    async (product: Product) => {
-      if (!walletConnected) {
-        await wallet.connect();
-        return;
-      }
-      const eth = getEthereum();
-      const hasDestination = Boolean(product.url);
-      if (eth && wallet.address && TREASURY_ADDRESS) {
-        // Plain transfer of test AVAX for now. Swap this for a call to your
-        // soulbound-NFT contract's subscribe() once it is deployed, so the
-        // payment also mints the access pass for `product.code`.
-        try {
-          const usd = priceUsd(product.code);
-          await eth.request({
-            method: "eth_sendTransaction",
-            params: [
-              {
-                from: wallet.address,
-                to: TREASURY_ADDRESS,
-                value: priceWeiHex(usd),
-              },
-            ],
-          });
-          setSubscribeNotice(
-            `Paid $${usd} in test AVAX for ${product.name}. Welcome aboard.` +
-              (hasDestination ? "" : ` ${product.name} doesn't have a live site yet.`)
-          );
-        } catch {
-          setSubscribeNotice("Payment was cancelled in the wallet.");
-          return;
-        }
-      } else {
-        setSubscribeNotice(
-          "Test payments are not configured yet: set TREASURY_ADDRESS to " +
-            "receive the test AVAX." +
-            (hasDestination
-              ? ` Taking you to ${product.name}.`
-              : ` ${product.name} doesn't have a live site yet.`)
-        );
-      }
-      if (product.url) {
-        window.open(product.url, "_blank", "noopener");
-      }
-    },
-    [walletConnected, wallet]
-  );
+  /** Opens the real subscribe modal (wallet-as-identity + x402 settlement on
+   *  Avalanche Fuji) instead of hand-rolling a payment transfer here. */
+  const handleSubscribe = useCallback((product: Product) => {
+    setSubscribeProduct(product);
+  }, []);
+
+  const handleSubscribed = useCallback((product: Product, address: string) => {
+    setSubscribeNotice(`Subscribed to ${product.name}. Welcome aboard.`);
+    if (product.url) window.open(product.url, "_blank", "noopener");
+    // Wallet-as-identity: mint the AccessPass soulbound credential for this
+    // wallet if it doesn't already have one. Best-effort — a failed/skipped
+    // mint (e.g. AccessPass not deployed yet) never blocks the subscription
+    // that already succeeded.
+    if (address) {
+      fetch("/api/access-pass/mint", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address }),
+      }).catch(() => {});
+    }
+  }, []);
 
   return (
     <div className="ksm-page">
       {/* ---------------- Search bar across the top ---------------- */}
       <header className="ksm-header">
-        <div className="ksm-header-row">
-          <div className="ksm-logo">
-            <span className="ksm-logo-mark">{SUITEAS_MARK}</span>
-            suite as
-            <span className="ksm-logo-sub">One subscription, every tool</span>
-          </div>
-          <button
-            type="button"
-            className="ksm-btn ksm-btn--wallet"
-            onClick={wallet.connect}
-            disabled={wallet.status === "connecting"}
-          >
-            {walletConnected && wallet.address
-              ? shortAddress(wallet.address)
-              : wallet.status === "connecting"
-                ? "Connecting"
-                : "Sign in with wallet"}
-          </button>
-        </div>
-
         <div className={`ksm-search ${voice.listening ? "ksm-search--listening" : ""}`}>
           <svg className="ksm-search-glass" viewBox="0 0 24 24" aria-hidden="true">
             <path
@@ -600,10 +520,19 @@ export default function KiwiStackMarketplace() {
           He waka eke noa. We are all in this together.
         </p>
         <p className="ksm-footer-small">
-          Built by startups, for startups, in Aotearoa. Subscriptions settle in
-          AVAX on the Avalanche C-Chain.
+          Built by startups, for startups, in Aotearoa. Subscriptions settle over
+          x402 on Avalanche C-Chain.
         </p>
       </footer>
+
+      {subscribeProduct && (
+        <SubscribeModal
+          product={subscribeProduct}
+          priceUsd={priceUsd(subscribeProduct.code)}
+          onClose={() => setSubscribeProduct(null)}
+          onSubscribed={handleSubscribed}
+        />
+      )}
     </div>
   );
 }

@@ -4,9 +4,15 @@
   "private": true,
   "scripts": {
     "build": "forge build",
-    "test": "forge test -vvv"
+    "test": "forge test -vvv",
+    "compile": "node compile.mjs",
+    "deploy": "node deploy.mjs"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^5.1.0"
+    "@openzeppelin/contracts": "^5.1.0",
+    "viem": "^2.55.8"
+  },
+  "devDependencies": {
+    "solc": "^0.8.36"
   }
 }

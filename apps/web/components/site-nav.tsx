@@ -254,6 +254,17 @@ export function SiteNav() {
         >
           <NavMark />
           <span style={{ fontWeight: 800, fontSize: 20, letterSpacing: "-0.02em" }}>suite as</span>
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              color: C.n500,
+            }}
+          >
+            One subscription, every tool
+          </span>
         </Link>
         <span style={{ flex: 1 }} />
         <Link href="/marketplace" style={navLink}>Find a product</Link>

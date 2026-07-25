@@ -45,37 +45,6 @@
   border-bottom: var(--ksm-rule);
 }
 
-.ksm-header-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 16px;
-}
-
-.ksm-logo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-weight: 800;
-  font-size: 18px;
-  letter-spacing: -0.01em;
-}
-
-.ksm-logo-mark svg {
-  width: 32px;
-  height: 32px;
-  display: block;
-}
-
-.ksm-logo-sub {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ksm-muted);
-}
-
 .ksm-search {
   display: flex;
   align-items: stretch;
@@ -341,16 +310,6 @@
 }
 .ksm-btn--locked:hover { background: var(--ksm-tint); }
 
-.ksm-btn--wallet {
-  width: auto;
-  border-color: var(--ksm-ink);
-  color: var(--ksm-ink);
-  white-space: nowrap;
-}
-.ksm-btn--wallet:hover:not(:disabled) { background: var(--ksm-tint); }
-.ksm-btn--wallet:active:not(:disabled) { background: var(--ksm-tint-deep); }
-.ksm-btn--wallet:disabled { opacity: 0.45; cursor: default; }
-
 /* ---------------- Notices ---------------- */
 
 .ksm-notice {
@@ -410,6 +369,5 @@
 }
 
 @media (max-width: 560px) {
-  .ksm-logo-sub { display: none; }
   .ksm-grid { grid-template-columns: 1fr; }
 }

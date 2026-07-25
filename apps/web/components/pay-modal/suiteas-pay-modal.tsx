@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useCallback, useState } from "react";
 import { connectWallet as realConnectWallet, makeSendPayment } from "./suiteas-pay-client";
 
