@@ -13,14 +13,15 @@ Solidity ^0.8.24, OpenZeppelin for anything standard, `evm_version = cancun`
 
 ## The settlement token
 
-Suite holds whatever ERC-20 the x402 rail is pointed at. The intended final
-currency is New Money's **dNZD** testnet stablecoin; **Fuji USDC is a temporary
-fallback** for proving the flow.
+Suite holds whatever ERC-20 it is pointed at. **Fuji USDC is the current
+fallback**; New Money's **dNZD** is the intended currency and is confirmed to work
+*at the contract layer* — it is only the gasless x402 payment leg that cannot
+settle dNZD, because the token has no EIP-3009 (`docs/DNZD.md`).
 
 The contract only ever calls `balanceOf` and `transfer`, so it is token- and
-decimals-agnostic — `test_Distribute_DecimalsAgnostic` is what proves that, since
-dNZD's decimals are not known yet. Nothing in Solidity needs to change when the
-token does; only the `SETTLEMENT_TOKEN` deploy variable.
+decimals-agnostic — `test_Distribute_DecimalsAgnostic` proves that. Both candidate
+tokens happen to be 6 dp, but nothing depends on it. Nothing in Solidity needs to
+change when the token does; only the `SETTLEMENT_TOKEN` deploy variable.
 
 `Suite.settlementToken` is **immutable**, so changing the token means deploying a
 new pool.
@@ -40,7 +41,7 @@ dumb pot. Usage is metered **off-chain** and the owner (oracle wallet) calls
 - `distribute(address[] recipients, uint256[] amounts)` — `onlyOwner`. Splits the
   pool. Any remainder carries to the next period.
 - Constructor rejects a zero token address, so a pool cannot be deployed pointing
-  at nothing while the dNZD address is still pending.
+  at nothing if `SETTLEMENT_TOKEN` is unset or wrong.
 
 For the demo, **metering is faked**: seed usage numbers, compute amounts, call
 `distribute`. Judges watch it settle on-chain; the input being hand-seeded is
@@ -104,8 +105,10 @@ any chain but Fuji (43113) and a local node. It writes
 `packages/shared/src/addresses.json` (the source of truth) and `pnpm abis`
 refreshes `packages/shared/src/abis/`.
 
-**Not deployed yet** — deliberately held until the dNZD details arrive, so the
-pool is not deployed against a token we intend to replace.
+**Not deployed yet.** The dNZD details have now arrived and are confirmed, but
+dNZD cannot settle over x402 (`docs/DNZD.md`), so the token choice is a judgement
+call rather than a formality — `docs/DEPLOY.md` lays out the two options. Deploy
+is still pending that call.
 
 ### Fuji USDC address — verified
 

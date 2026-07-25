@@ -22,7 +22,7 @@ Most commits = **$200** each.
 | **CryptoNZ / Kiwiana** | 🟢 strong | **"Koha" is te reo Māori** — gift/reciprocity; $0-included | Framing, copy, te reo in UI |
 | **Lumin — Digital Identity** | 🟢 strong | One wallet = one identity across the bundle; no PII handed to each SaaS. Self-sovereign login | AccessPass as credential; optional attestation layer |
 | **Lumin — Payments + Identity** | 🟢 strong | Identity authorises the payment; payment grants access — one act, no signup form | Tie AccessPass to the payment |
-| **New Money — Digital NZD** | 🟡 partial | Rail is token-agnostic; koha can settle in NZD | Point x402 asset at DNZD token (need address) |
+| **New Money — Digital NZD** | 🟡 partial | Rail is token-agnostic, but dNZD has no EIP-3009 so x402 cannot settle it (`docs/DNZD.md`) | Run the **pool + split** in dNZD; koha still settles in USDC |
 | **FireEyes — Governance** | 🔴 stretch | Not a governance project | Skip unless early |
 | **Best content** ($200) | ⚪ meta | Non-code | Demo video + write-up |
 | **Most commits** ($200) | ⚪ meta | Already small/frequent | Keep committing |
@@ -57,7 +57,12 @@ identity" the Lumin identity track is asking for.
 2. **Kiwiana** — mostly framing around koha; already true. Near-free.
 3. **Lumin identity** — make the "one identity, no PII" value prop explicit in
    the UI (cheap) + AccessPass credential (real but small).
-4. **DNZD** — ~1hr config change *if* the token exists on Fuji. Best ROI add.
+4. **dNZD** — no longer a config change. The token is live on Fuji and inspected
+   (`docs/DNZD.md`): 6 dp, EIP-712 `{dNZD, 1}`, ERC-2612 permit, but **no
+   EIP-3009**, so koha cannot settle in it over x402. What is still cheap: deploy
+   the pool in dNZD and do the **on-chain split** in dNZD, which is a real
+   "settles in NZD" demo, and ask New Money whether they will add EIP-3009 (the
+   token is a UUPS proxy, so they can without changing the address).
 5. **Skip** FireEyes governance unless finished early.
 
 ## The demo that covers the most tracks at once

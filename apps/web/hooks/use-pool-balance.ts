@@ -12,8 +12,8 @@ const ZERO = "0x0000000000000000000000000000000000000000";
  * Suite contract is deployed (addresses.json still zero) or while the first read
  * is in flight.
  *
- * Decimals come from the settlement config, not a hardcoded 6: the pool settles
- * in Fuji USDC today and dNZD later, whose decimals are still unknown.
+ * Decimals come from the settlement config, not a hardcoded 6, because the
+ * settlement token is not fixed. (Fuji USDC and dNZD are both 6 dp today.)
  */
 export function usePoolBalanceUsd(): { usd: number | undefined; refetch: () => void } {
   const suite = getAddress("Suite");

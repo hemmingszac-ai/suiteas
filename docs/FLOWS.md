@@ -3,9 +3,10 @@
 The core of the project. `ARCHITECTURE.md` summarises these; this file is the
 detail plus **what is actually built**, so nobody demos a flow that isn't wired.
 
-Currency in every flow is the **settlement token**: New Money's dNZD testnet
-stablecoin in the end state, Fuji USDC as the temporary fallback while dNZD
-details are pending. Chain is Avalanche Fuji (43113) in all four.
+Currency in every flow is the **settlement token**: Fuji USDC today. New Money's
+dNZD is the intended currency and works for flows 1/3/4, but **not for flow 2** —
+it has no EIP-3009, so x402 cannot settle it (`docs/DNZD.md`). Chain is Avalanche
+Fuji (43113) in all four.
 
 | # | Flow | Status |
 |---|---|---|

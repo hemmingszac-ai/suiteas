@@ -4,10 +4,10 @@ pragma solidity ^0.8.24;
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /// @notice Stand-in for whatever ERC-20 koha settles in. Decimals are a
-/// constructor argument because the settlement token is not fixed: Fuji USDC (6
-/// dp) is the temporary fallback and dNZD's decimals are not known yet. Suite
-/// must behave identically either way, so tests instantiate this with more than
-/// one decimals value rather than assuming one.
+/// constructor argument because the settlement token is not fixed — Fuji USDC and
+/// dNZD are both 6 dp today, but nothing in Suite should depend on that. Suite
+/// must behave identically at any decimals, so tests instantiate this with more
+/// than one value rather than assuming one.
 contract MockSettlementToken is ERC20 {
     uint8 private immutable _decimals;
 

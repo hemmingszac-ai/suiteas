@@ -1,5 +1,5 @@
 {
-  "_note": "Metadata for the token koha settles in. The ADDRESS is not here — it lives in addresses.json under SettlementToken, which stays the single source of truth. dNZD is the intended final settlement currency; these values are the temporary Fuji USDC fallback and come from x402's own Fuji config (getDefaultAsset for avalanche-fuji), not from guesswork.",
+  "_note": "Metadata for the token koha settles in. The ACTIVE token's address lives in addresses.json under SettlementToken, which stays the single source of truth. Chain-id keys describe the active token; `candidates` records tokens that have been verified on-chain but cannot settle on the rail yet. dNZD's metadata below is confirmed by read-only calls (docs/DNZD.md) — its status is pending because it does not implement EIP-3009, which x402's exact-EVM scheme requires.",
   "43113": {
     "symbol": "USDC",
     "decimals": 6,
@@ -9,5 +9,20 @@
     },
     "authorization": "eip3009",
     "status": "fallback"
+  },
+  "candidates": {
+    "dNZD": {
+      "chainId": 43113,
+      "address": "0x99A22a5AD6B2fd7EefE512F49dc22336dEEdf877",
+      "symbol": "dNZD",
+      "decimals": 6,
+      "eip712": {
+        "name": "dNZD",
+        "version": "1"
+      },
+      "authorization": "eip2612",
+      "status": "pending",
+      "blocker": "No EIP-3009. transferWithAuthorization and receiveWithAuthorization are absent in both signature forms, confirmed by exhaustive selector enumeration and behavioural probes. x402's exact-EVM scheme settles by calling transferWithAuthorization on the asset, so dNZD cannot settle over x402. ERC-2612 permit is implemented and verified, but permit only grants an allowance — it does not move tokens gaslessly, so it is not a substitute. Suite itself holds dNZD fine; only the x402 payment leg is blocked. See docs/DNZD.md."
+    }
   }
 }

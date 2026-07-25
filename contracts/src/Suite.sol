@@ -9,11 +9,12 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 /// @notice x402 settles the settlement token into this contract; this address is
 /// the x402 `payTo`.
 ///
-/// The settlement token is whatever ERC-20 the x402 rail is pointed at. The
-/// intended final currency is New Money's dNZD testnet stablecoin; Fuji USDC is
-/// the temporary fallback used to prove the flow. The contract only ever calls
-/// `balanceOf` / `transfer`, so it is token- and decimals-agnostic: nothing here
-/// needs to change when the token does. Only the constructor argument changes.
+/// The settlement token is whatever ERC-20 the pool is pointed at: Fuji USDC
+/// today, New Money's dNZD the intended currency (dNZD works here — it is only
+/// the gasless x402 payment leg that cannot settle it, see docs/DNZD.md). The
+/// contract only ever calls `balanceOf` / `transfer`, so it is token- and
+/// decimals-agnostic: nothing here needs to change when the token does. Only the
+/// constructor argument changes.
 ///
 /// The contract intentionally has NO deposit function. EIP-3009
 /// `transferWithAuthorization` (what x402 facilitators relay) has no recipient
@@ -26,7 +27,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 contract Suite is Ownable {
     using SafeERC20 for IERC20;
 
-    /// @notice The ERC-20 koha settles in. dNZD in the end state, Fuji USDC for now.
+    /// @notice The ERC-20 koha settles in. Immutable — a token swap means a new pool.
     IERC20 public immutable settlementToken;
 
     /// @notice Increments on each split. A label for events, not an accounting ledger.

@@ -126,10 +126,10 @@ contract SuiteTest is Test {
         suite.distribute(_members(), amounts);
     }
 
-    /// The settlement token is not fixed and dNZD's decimals are unknown, so the
-    /// pool must behave identically at another decimals value. Nothing in Suite
-    /// reads decimals — this test is what lets us swap the token later without
-    /// touching the contract.
+    /// The settlement token is not fixed, so the pool must behave identically at
+    /// another decimals value. Fuji USDC and dNZD are both 6 dp today, but nothing
+    /// in Suite reads decimals — this test is what lets us swap the token later
+    /// without touching the contract.
     function test_Distribute_DecimalsAgnostic() public {
         MockSettlementToken token18 = new MockSettlementToken("Placeholder", "TEST", 18);
         Suite suite18 = new Suite(address(token18), owner);

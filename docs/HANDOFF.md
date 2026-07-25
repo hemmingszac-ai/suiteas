@@ -73,12 +73,13 @@ deferred scope.
    it needs auth) so x402 actually settles on Fuji. Blocked: thirdweb is
    unconfigured because the available plan appears paid. Smoke test: unpaid
    `GET /api/protected` → 402; paid → balance rises at `payTo`.
-3. **dNZD — the "New Money" prize track.** The configuration surface is built
-   (`apps/web/lib/settlement.ts`, `packages/shared/src/settlement.json`,
-   `SETTLEMENT_TOKEN` for the deploy). Needs from New Money: address, decimals,
-   EIP-712 domain, and **whether it implements EIP-3009** — if it is
-   EIP-2612-only, x402's exact-EVM scheme cannot settle it at all. See
-   `docs/X402.md`.
+3. **dNZD — the "New Money" prize track. Inspected; blocked on the token.**
+   Address/decimals/EIP-712 domain are confirmed on-chain and in config, but
+   dNZD has **no EIP-3009**, so x402 cannot settle it. It has ERC-2612 `permit`,
+   which is not a substitute. Full evidence: **`docs/DNZD.md`**. Options: ask New
+   Money to upgrade the token (UUPS, address can stay), or run a **dNZD
+   split-only** pool while koha settles in USDC (`docs/DEPLOY.md`). Writing an
+   x402 permit scheme is out of scope.
 4. **Split with real member wallets** — the workflow exists
    (`contracts/script/Distribute.s.sol`, seeded JSON, `onlyOwner` oracle).
    Needs: the member recipient addresses. Hand-seeded usage is fine and
@@ -96,7 +97,10 @@ Full list with required/optional/pending split: `.env.example` (web) and
 - `NEXT_PUBLIC_PRIVY_APP_ID=cmrzbm07300en0djt6hnvzj5x` (set; public)
 - `X402_PAY_TO` — the `Suite` address (override with a dev wallet to test before deploy)
 - `X402_FACILITATOR_URL` / `THIRDWEB_SECRET_KEY` — **pending** (thirdweb account)
-- `X402_SETTLEMENT_TOKEN_*` / `X402_PRICE_ATOMIC` — **pending** (dNZD). All five or none.
+- `X402_SETTLEMENT_TOKEN_*` / `X402_PRICE_ATOMIC` — **leave empty.** All five or
+  none, and dNZD cannot settle over x402 yet (`docs/DNZD.md`).
+- dNZD `0x99A22a5AD6B2fd7EefE512F49dc22336dEEdf877` — 6 dp, EIP-712 `{dNZD, 1}`,
+  ERC-2612 permit ✓, **EIP-3009 ✗**. Demo payer holds 1,000,000 dNZD.
 - Fuji USDC `0x5425890298aed601595a70AB815c96711a31Bc65` — verified, FiatTokenV2 (EIP-3009 ✓)
 - Owner/oracle `0xa7Dd13442d45450BE26843f6941B659555116bf1` (0.5 Fuji AVAX);
   demo payer `0x32f720F098816BCfe19d694D81fF9Bd8e27DaFE4` (Fuji test USDC).

@@ -122,7 +122,33 @@ anyone else fails with `OwnableUnauthorizedAccount`, which is the check working.
 
 ## Switching to dNZD
 
-When New Money supplies the token details, this is the whole change:
+**Read `docs/DNZD.md` first.** dNZD's address, decimals and EIP-712 domain are
+confirmed, but it **does not implement EIP-3009**, so koha cannot settle into a
+dNZD pool over x402. Two honest options:
+
+- **Deploy the pool against USDC** (what the steps above do). Flow 2 and flow 3
+  both work. This is the default.
+- **Deploy the pool against dNZD for the split only.** `Suite` holds dNZD fine, so
+  seed it with a plain transfer from the demo payer (which holds 1,000,000 dNZD)
+  and run the split on-chain. Do **not** set the `X402_SETTLEMENT_TOKEN_*`
+  variables — the 402 quote would look valid and then fail at settlement. Koha
+  keeps settling in USDC, so the story has two currencies in it; say that out loud
+  rather than letting a judge find it.
+
+```bash
+# dNZD split-only pool
+SETTLEMENT_TOKEN=0x99A22a5AD6B2fd7EefE512F49dc22336dEEdf877 \
+  forge script script/Deploy.s.sol --rpc-url fuji --account suiteas-deployer --broadcast
+cd .. && pnpm addresses
+# seed it from the demo payer, then run script/Distribute.s.sol as normal
+cast send 0x99A22a5AD6B2fd7EefE512F49dc22336dEEdf877 "transfer(address,uint256)" \
+  <SUITE> 100000000 --rpc-url fuji --account <demo-payer-keystore>
+```
+
+### Once the settlement token actually supports EIP-3009
+
+If New Money upgrades dNZD (it is a UUPS proxy, so the address can stay), or
+another EIP-3009 token is chosen, this is the whole change:
 
 ```bash
 # 1. contracts/.env
@@ -133,26 +159,38 @@ cd contracts
 forge script script/Deploy.s.sol --rpc-url fuji --account suiteas-deployer --broadcast
 cd .. && pnpm addresses
 
-# 3. packages/shared/src/settlement.json — add the real symbol, decimals and
-#    EIP-712 domain for chain 43113, and set "status": "live"
+# 3. packages/shared/src/settlement.json — promote the token from
+#    candidates.<symbol> to the "43113" entry and set "status": "live".
+#    For dNZD the verified values are already recorded: symbol dNZD,
+#    decimals 6, eip712 { name: "dNZD", version: "1" }.
 
 # 4. apps/web/.env.local + Vercel — quote the token directly
-X402_SETTLEMENT_TOKEN_ADDRESS=<dNZD address>
-X402_SETTLEMENT_TOKEN_DECIMALS=<from the token contract>
-X402_SETTLEMENT_TOKEN_EIP712_NAME=<from the token contract>
-X402_SETTLEMENT_TOKEN_EIP712_VERSION=<from the token contract>
+X402_SETTLEMENT_TOKEN_ADDRESS=0x99A22a5AD6B2fd7EefE512F49dc22336dEEdf877
+X402_SETTLEMENT_TOKEN_DECIMALS=6
+X402_SETTLEMENT_TOKEN_EIP712_NAME=dNZD
+X402_SETTLEMENT_TOKEN_EIP712_VERSION=1
 X402_PRICE_ATOMIC=<price in atomic units — not converted from USD>
 X402_PAY_TO=<new Suite address>
 
 # 5. pnpm typecheck && pnpm build, then re-run the 402 smoke test
 ```
 
+**First re-verify EIP-3009 actually landed** — this is the step that is currently
+false, so do not skip it:
+
+```bash
+# must return false (not revert) once EIP-3009 is present
+cast call 0x99A22a5AD6B2fd7EefE512F49dc22336dEEdf877 \
+  "authorizationState(address,bytes32)(bool)" \
+  0x32f720F098816BCfe19d694D81fF9Bd8e27DaFE4 \
+  0x0000000000000000000000000000000000000000000000000000000000000001 --rpc-url fuji
+```
+
+If it reverts with empty data, the function is still absent and nothing above
+will work. Re-check the EIP-712 domain too — an upgrade can change it.
+
 `Suite.settlementToken` is immutable, so a token change means a new pool. Do the
 split demo on one token or the other, not across a swap.
-
-**Confirm first:** dNZD must implement EIP-3009 `transferWithAuthorization` for
-x402 to settle it. If it only supports EIP-2612 `permit`, the rail needs a new
-scheme and no configuration change will do it. See `docs/X402.md`.
 
 ## Local rehearsal
 

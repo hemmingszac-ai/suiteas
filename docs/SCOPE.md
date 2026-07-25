@@ -51,9 +51,12 @@ Not rejected. Just not before the flows that are already half-built.
 
 Do not build around these; they are inputs, not work.
 
-- **dNZD**: token address, decimals, EIP-712 domain, whether it implements
-  EIP-3009, and the API/facilitator details. Pending from New Money. The
-  configuration surface for all of it already exists — see `docs/X402.md`.
+- **dNZD**: address, decimals and EIP-712 domain are now **confirmed on-chain**
+  (`docs/DNZD.md`) and recorded in config. But it **does not implement EIP-3009**,
+  so x402 cannot settle it — status stays pending. Unblocking it needs New Money
+  to upgrade the token (it is a UUPS proxy, so they can without changing the
+  address). **Writing an x402 scheme for ERC-2612 `permit` is out of scope** —
+  that is protocol work, not configuration.
 - **x402 facilitator URL** (and a secret if it needs auth). Without it, live
   Fuji settlement cannot be tested. thirdweb is unconfigured because the
   available plan appears paid.

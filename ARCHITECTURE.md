@@ -18,7 +18,7 @@ Blockchain is load-bearing in two places: the split has to be trustless or no Sa
 | Payment rail | **x402** (HTTP 402) | Per-request micropayments, gasless for users via EIP-3009, no billing infra to build |
 | x402 facilitator | thirdweb (`thirdweb/x402`) | Supports Avalanche C-Chain and Fuji, well documented |
 | Middleware | `x402-next` | Drops into Next.js route handlers |
-| Currency | **Settlement token** — dNZD (New Money testnet stablecoin) intended; Fuji USDC as the temporary fallback | EIP-3009 path = gasless, no approval step. Configurable, not hardcoded — see `docs/X402.md` |
+| Currency | **Settlement token** — Fuji USDC today; dNZD intended but blocked for x402 (no EIP-3009, see `docs/DNZD.md`) | EIP-3009 path = gasless, no approval step. Configurable, not hardcoded — see `docs/X402.md` |
 | Contracts | Solidity ^0.8.24 + Foundry | Only two contracts — x402 does the payment work |
 | Web | Next.js 14 App Router + TypeScript | One framework for UI and API routes |
 | Auth | Privy | Email → embedded Avalanche wallet, no seed phrase |

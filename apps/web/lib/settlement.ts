@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import type { ERC20TokenAmount, Price } from "x402/types";
-import { getSettlementToken, type AuthorizationStandard } from "@suiteas/shared";
+import { getSettlementToken, X402_SETTLEABLE, type AuthorizationStandard } from "@suiteas/shared";
 
 /**
  * Server-side settlement-token configuration for the x402 rail.
@@ -40,8 +40,13 @@ const TOKEN_VARS = [
  * also what makes the payment gasless. A token that does not implement EIP-3009
  * cannot settle over this rail — so the variable exists to be validated, not to
  * silently accept something the rail cannot honour.
+ *
+ * This is why dNZD is not wired in yet: it implements ERC-2612 `permit`, not
+ * EIP-3009 (verified on-chain, see docs/DNZD.md). `permit` grants an allowance;
+ * it does not move tokens, so it needs a second gas-paying transaction and
+ * cannot stand in here.
  */
-const SUPPORTED_AUTHORIZATION: readonly AuthorizationStandard[] = ["eip3009"];
+const SUPPORTED_AUTHORIZATION = X402_SETTLEABLE;
 
 const ADDRESS = /^0x[0-9a-fA-F]{40}$/;
 const DIGITS = /^[0-9]+$/;
@@ -60,11 +65,13 @@ export function authorizationStandard(): AuthorizationStandard {
   const configured = env("X402_SETTLEMENT_AUTHORIZATION") ?? getSettlementToken().authorization;
   if (!SUPPORTED_AUTHORIZATION.includes(configured as AuthorizationStandard)) {
     fail(
-      `X402_SETTLEMENT_AUTHORIZATION="${configured}" is not supported. ` +
-        `x402's exact-EVM scheme relays EIP-3009 transferWithAuthorization only ` +
-        `(supported: ${SUPPORTED_AUTHORIZATION.join(", ")}). ` +
-        `If the settlement token uses a different standard, the rail needs a new ` +
-        `scheme — it is not a configuration change.`,
+      `X402_SETTLEMENT_AUTHORIZATION="${configured}" cannot settle over x402. ` +
+        `Its exact-EVM scheme calls transferWithAuthorization on the asset, so ` +
+        `only EIP-3009 works (settleable: ${SUPPORTED_AUTHORIZATION.join(", ")}). ` +
+        `ERC-2612 permit is not a substitute — it grants an allowance rather than ` +
+        `moving tokens, so it needs a second gas-paying transaction. A token on a ` +
+        `different standard needs a new x402 scheme, not a config change. ` +
+        `dNZD is in this position today: see docs/DNZD.md.`,
     );
   }
   return configured as AuthorizationStandard;
