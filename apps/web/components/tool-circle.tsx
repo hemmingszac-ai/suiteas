@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "motion/react";
-import { PRODUCTS } from "@/lib/products";
+import { NZ10_PRODUCTS } from "@/lib/products";
 import { ProductIcon } from "./product-icon";
 
 const ORBIT_SECONDS = 50;
@@ -19,8 +19,8 @@ export function ToolCircle() {
   return (
     <div className="relative mx-auto aspect-square w-full max-w-lg">
       <motion.div className="absolute inset-0" animate={orbit}>
-        {PRODUCTS.map((p, i) => {
-          const angle = (i / PRODUCTS.length) * 2 * Math.PI - Math.PI / 2;
+        {NZ10_PRODUCTS.map((p, i) => {
+          const angle = (i / NZ10_PRODUCTS.length) * 2 * Math.PI - Math.PI / 2;
           const x = 50 + 44 * Math.cos(angle);
           const y = 50 + 44 * Math.sin(angle);
           return (

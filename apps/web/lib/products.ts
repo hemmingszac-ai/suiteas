@@ -1,3 +1,11 @@
+/**
+ * "nz10": the curated paid tier (The NZ10) — subscription paid from your
+ * wallet, gated by a soulbound AccessPass that burns if payment lapses.
+ * "nz500": the free tier (The N&Z500) — koha-funded, pay what you can
+ * including $0.
+ */
+export type ProductTier = "nz10" | "nz500";
+
 export type Product = {
   id: string;
   name: string;
@@ -6,6 +14,7 @@ export type Product = {
   glyph: string;
   color: string;
   keywords: string[];
+  tier: ProductTier;
 };
 
 export const PRODUCTS: Product[] = [
@@ -17,6 +26,7 @@ export const PRODUCTS: Product[] = [
     glyph: "📝",
     color: "#2f8f5b",
     keywords: ["notes", "notebook", "write", "remember", "docs", "wiki"],
+    tier: "nz10",
   },
   {
     id: "orbit",
@@ -26,6 +36,7 @@ export const PRODUCTS: Product[] = [
     glyph: "⚛️",
     color: "#1d3f6e",
     keywords: ["tasks", "projects", "planning", "sprints", "organize", "team"],
+    tier: "nz10",
   },
   {
     id: "nova",
@@ -35,6 +46,7 @@ export const PRODUCTS: Product[] = [
     glyph: "✨",
     color: "#3730a3",
     keywords: ["ai", "assistant", "draft", "write", "summarize"],
+    tier: "nz10",
   },
   {
     id: "volt",
@@ -44,6 +56,7 @@ export const PRODUCTS: Product[] = [
     glyph: "⚡",
     color: "#d9622b",
     keywords: ["automation", "workflow", "integrate", "connect", "zap"],
+    tier: "nz10",
   },
   {
     id: "pulse",
@@ -53,15 +66,7 @@ export const PRODUCTS: Product[] = [
     glyph: "💓",
     color: "#0f9b8e",
     keywords: ["analytics", "metrics", "data", "funnels", "tracking", "dashboard"],
-  },
-  {
-    id: "mandala",
-    name: "Mandala",
-    category: "Automation",
-    description: "Visual workflow builder for ops teams.",
-    glyph: "🔗",
-    color: "#111827",
-    keywords: ["workflow", "ops", "automation", "builder", "process"],
+    tier: "nz10",
   },
   {
     id: "quill",
@@ -71,15 +76,7 @@ export const PRODUCTS: Product[] = [
     glyph: "🪶",
     color: "#5b21b6",
     keywords: ["writing", "blog", "publish", "content", "editor"],
-  },
-  {
-    id: "ascend",
-    name: "Ascend",
-    category: "Analytics",
-    description: "Revenue forecasting for early-stage teams.",
-    glyph: "▲",
-    color: "#0b0d12",
-    keywords: ["forecasting", "revenue", "finance", "growth", "projections"],
+    tier: "nz10",
   },
   {
     id: "hex",
@@ -89,15 +86,7 @@ export const PRODUCTS: Product[] = [
     glyph: "⬡",
     color: "#0369a1",
     keywords: ["hosting", "deploy", "server", "infrastructure", "dev", "code"],
-  },
-  {
-    id: "flare",
-    name: "Flare",
-    category: "Marketing",
-    description: "Email marketing that doesn't feel like marketing.",
-    glyph: "📣",
-    color: "#db2777",
-    keywords: ["email", "marketing", "newsletter", "campaigns", "audience"],
+    tier: "nz10",
   },
   {
     id: "ember",
@@ -107,6 +96,7 @@ export const PRODUCTS: Product[] = [
     glyph: "🔥",
     color: "#c81e1e",
     keywords: ["crm", "sales", "leads", "customers", "pipeline", "deals"],
+    tier: "nz10",
   },
   {
     id: "halo",
@@ -116,24 +106,7 @@ export const PRODUCTS: Product[] = [
     glyph: "🔒",
     color: "#6d28d9",
     keywords: ["security", "login", "auth", "sso", "access", "permissions"],
-  },
-  {
-    id: "loop",
-    name: "Loop",
-    category: "Support",
-    description: "Shared inbox and helpdesk for support teams.",
-    glyph: "♾️",
-    color: "#ca8a04",
-    keywords: ["support", "helpdesk", "tickets", "inbox", "customers"],
-  },
-  {
-    id: "beacon",
-    name: "Beacon",
-    category: "Communication",
-    description: "Transactional email and notifications that just work.",
-    glyph: "📨",
-    color: "#0284c7",
-    keywords: ["email", "notifications", "transactional", "alerts", "messages"],
+    tier: "nz10",
   },
   {
     id: "ledger",
@@ -143,8 +116,162 @@ export const PRODUCTS: Product[] = [
     glyph: "💳",
     color: "#475569",
     keywords: ["finance", "invoices", "bookkeeping", "accounting", "money", "billing"],
+    tier: "nz10",
+  },
+  {
+    id: "mandala",
+    name: "Mandala",
+    category: "Automation",
+    description: "Visual workflow builder for ops teams.",
+    glyph: "🔗",
+    color: "#111827",
+    keywords: ["workflow", "ops", "automation", "builder", "process"],
+    tier: "nz500",
+  },
+  {
+    id: "ascend",
+    name: "Ascend",
+    category: "Analytics",
+    description: "Revenue forecasting for early-stage teams.",
+    glyph: "▲",
+    color: "#0b0d12",
+    keywords: ["forecasting", "revenue", "finance", "growth", "projections"],
+    tier: "nz500",
+  },
+  {
+    id: "flare",
+    name: "Flare",
+    category: "Marketing",
+    description: "Email marketing that doesn't feel like marketing.",
+    glyph: "📣",
+    color: "#db2777",
+    keywords: ["email", "marketing", "newsletter", "campaigns", "audience"],
+    tier: "nz500",
+  },
+  {
+    id: "loop",
+    name: "Loop",
+    category: "Support",
+    description: "Shared inbox and helpdesk for support teams.",
+    glyph: "♾️",
+    color: "#ca8a04",
+    keywords: ["support", "helpdesk", "tickets", "inbox", "customers"],
+    tier: "nz500",
+  },
+  {
+    id: "beacon",
+    name: "Beacon",
+    category: "Communication",
+    description: "Transactional email and notifications that just work.",
+    glyph: "📨",
+    color: "#0284c7",
+    keywords: ["email", "notifications", "transactional", "alerts", "messages"],
+    tier: "nz500",
+  },
+  {
+    id: "tally",
+    name: "Tally",
+    category: "Finance",
+    description: "Simple invoicing and expense tracking for freelancers.",
+    glyph: "🧾",
+    color: "#166534",
+    keywords: ["invoicing", "expenses", "freelance", "money", "receipts"],
+    tier: "nz500",
+  },
+  {
+    id: "compass",
+    name: "Compass",
+    category: "Product",
+    description: "Customer feedback and roadmap voting, all in one board.",
+    glyph: "🧭",
+    color: "#0f766e",
+    keywords: ["feedback", "roadmap", "voting", "product", "requests"],
+    tier: "nz500",
+  },
+  {
+    id: "sprout",
+    name: "Sprout",
+    category: "HR",
+    description: "Onboarding checklists that new hires actually finish.",
+    glyph: "🌱",
+    color: "#4d7c0f",
+    keywords: ["onboarding", "hr", "hiring", "checklist", "team"],
+    tier: "nz500",
+  },
+  {
+    id: "canvas",
+    name: "Canvas",
+    category: "Sales",
+    description: "Client proposals and e-signatures without the back-and-forth.",
+    glyph: "✍️",
+    color: "#b45309",
+    keywords: ["proposals", "signatures", "contracts", "sales", "clients"],
+    tier: "nz500",
+  },
+  {
+    id: "relay",
+    name: "Relay",
+    category: "Productivity",
+    description: "Async standups so meetings can stay optional.",
+    glyph: "📡",
+    color: "#4338ca",
+    keywords: ["standups", "async", "updates", "team", "meetings"],
+    tier: "nz500",
+  },
+  {
+    id: "palette",
+    name: "Palette",
+    category: "Design",
+    description: "A single source of truth for your brand assets.",
+    glyph: "🎨",
+    color: "#be185d",
+    keywords: ["design", "brand", "assets", "style guide", "logos"],
+    tier: "nz500",
+  },
+  {
+    id: "tide",
+    name: "Tide",
+    category: "Analytics",
+    description: "Simple NPS surveys and customer sentiment tracking.",
+    glyph: "🌊",
+    color: "#0284c7",
+    keywords: ["nps", "surveys", "sentiment", "feedback", "customers"],
+    tier: "nz500",
+  },
+  {
+    id: "harbour",
+    name: "Harbour",
+    category: "Productivity",
+    description: "Shared calendars and booking for small teams.",
+    glyph: "⛵",
+    color: "#1e3a5f",
+    keywords: ["calendar", "booking", "scheduling", "meetings", "team"],
+    tier: "nz500",
+  },
+  {
+    id: "kindling",
+    name: "Kindling",
+    category: "Marketing",
+    description: "Lightweight blog and changelog hosting.",
+    glyph: "📰",
+    color: "#c2410c",
+    keywords: ["blog", "changelog", "publishing", "content", "marketing"],
+    tier: "nz500",
+  },
+  {
+    id: "signal",
+    name: "Signal",
+    category: "Dev tools",
+    description: "Error tracking and alerts that don't spam your team.",
+    glyph: "📶",
+    color: "#334155",
+    keywords: ["errors", "monitoring", "alerts", "dev", "debugging"],
+    tier: "nz500",
   },
 ];
+
+export const NZ10_PRODUCTS = PRODUCTS.filter((p) => p.tier === "nz10");
+export const NZ500_PRODUCTS = PRODUCTS.filter((p) => p.tier === "nz500");
 
 const STOPWORDS = new Set([
   "a", "an", "the", "i", "need", "want", "to", "do", "for", "my", "our", "your",
