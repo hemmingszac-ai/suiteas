@@ -1,0 +1,11 @@
+{
+  "note": "Seeded usage for the demo split. Metering is off-chain and hand-seeded — disclosed in the pitch, not hidden. Copy to script/usage.json and put real member wallets in before broadcasting.",
+  "label": "demo-period-1",
+  "members": ["Member A", "Member B", "Member C (no usage this period)"],
+  "recipients": [
+    "0x0000000000000000000000000000000000000001",
+    "0x0000000000000000000000000000000000000002",
+    "0x0000000000000000000000000000000000000003"
+  ],
+  "usage": [1200, 800, 0]
+}
