@@ -1,56 +1,14 @@
 "use client";
 
-import { usePrivy } from "@privy-io/react-auth";
-import { useState } from "react";
-import { publicActions } from "viem";
-import { useWalletClient } from "wagmi";
-import { decodeXPaymentResponse, wrapFetchWithPayment } from "x402-fetch";
-
-type State = "idle" | "paying" | "done" | "error";
+import { useContributeKoha } from "@/hooks/use-contribute-koha";
 
 /**
- * The one primary action: pay a koha over x402. Fetches /api/protected, which
- * returns 402; wrapFetchWithPayment signs an EIP-3009 authorization with the
- * connected wallet (gasless) and retries; the facilitator settles USDC into the
- * Suite pool. The live counter picks up the new balance on its next poll.
+ * The dashboard's primary action: pay a koha over x402. Thin wrapper around
+ * useContributeKoha (shared with the landing "Top up wallet" CTA) so the whole
+ * app pays through one code path.
  */
 export function ContributeButton({ onPaid }: { onPaid?: () => void }) {
-  const { authenticated, login } = usePrivy();
-  const { data: walletClient } = useWalletClient();
-  const [state, setState] = useState<State>("idle");
-  const [msg, setMsg] = useState("");
-
-  async function pay() {
-    if (!authenticated) {
-      login();
-      return;
-    }
-    if (!walletClient) {
-      setState("error");
-      setMsg("No connected wallet to sign the payment.");
-      return;
-    }
-    try {
-      setState("paying");
-      setMsg("");
-      // x402 needs a wallet client that also has public actions.
-      const signer = walletClient.extend(publicActions);
-      const fetchWithPay = wrapFetchWithPayment(fetch, signer);
-      const res = await fetchWithPay("/api/protected", { method: "GET" });
-      if (!res.ok) throw new Error(`Request failed (${res.status})`);
-
-      const header = res.headers.get("x-payment-response");
-      if (header) {
-        const settled = decodeXPaymentResponse(header);
-        setMsg(settled?.transaction ? `Settled: ${settled.transaction.slice(0, 10)}…` : "");
-      }
-      setState("done");
-      onPaid?.();
-    } catch (e) {
-      setState("error");
-      setMsg(e instanceof Error ? e.message : "Payment failed.");
-    }
-  }
+  const { pay, state, msg } = useContributeKoha(onPaid);
 
   const label =
     state === "paying" ? "Paying…" : state === "done" ? "Koha sent ✓" : "Contribute koha";
@@ -59,7 +17,7 @@ export function ContributeButton({ onPaid }: { onPaid?: () => void }) {
     <div className="flex w-full max-w-sm flex-col items-center gap-2">
       <button
         type="button"
-        onClick={pay}
+        onClick={() => pay()}
         disabled={state === "paying"}
         className="w-full rounded-xl bg-ink px-6 py-4 text-base font-medium text-paper transition hover:bg-ink/90 disabled:opacity-60"
       >
