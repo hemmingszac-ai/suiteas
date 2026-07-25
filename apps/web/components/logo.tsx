@@ -13,7 +13,7 @@ export function Logo({ size = 36 }: { size?: number }) {
       <svg
         width={size * 0.62}
         height={size * 0.62}
-        viex/)x="0 0 24 24"
+        viewBox="0 0 24 24"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
