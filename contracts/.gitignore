@@ -2,3 +2,7 @@ out/
 cache/
 lib/
 broadcast/
+# local anvil rehearsals — ephemeral addresses, never a real deployment record
+deployments/31337.json
+# working copy of the seeded usage input; usage.example.json is the tracked one
+script/usage.local.json

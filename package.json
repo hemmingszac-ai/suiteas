@@ -10,6 +10,9 @@
     "build": "pnpm --filter web build",
     "start": "pnpm --filter web start",
     "lint": "pnpm --filter web lint",
-    "typecheck": "pnpm -r typecheck"
+    "typecheck": "pnpm -r typecheck",
+    "test:contracts": "pnpm --filter @suiteas/contracts test",
+    "abis": "node scripts/export-abis.mjs",
+    "addresses": "node scripts/sync-addresses.mjs"
   }
 }
