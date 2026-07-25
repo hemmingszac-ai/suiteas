@@ -1,0 +1,13 @@
+{
+  "_note": "Metadata for the token koha settles in. The ADDRESS is not here — it lives in addresses.json under SettlementToken, which stays the single source of truth. dNZD is the intended final settlement currency; these values are the temporary Fuji USDC fallback and come from x402's own Fuji config (getDefaultAsset for avalanche-fuji), not from guesswork.",
+  "43113": {
+    "symbol": "USDC",
+    "decimals": 6,
+    "eip712": {
+      "name": "USD Coin",
+      "version": "2"
+    },
+    "authorization": "eip3009",
+    "status": "fallback"
+  }
+}
