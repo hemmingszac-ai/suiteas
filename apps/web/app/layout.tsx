@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Providers } from "@/components/providers";
+import { SiteNav } from "@/components/site-nav";
 import "./globals.css";
 
 // Archivo is self-hosted via @font-face in globals.css (files in public/fonts).
@@ -17,7 +18,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <Providers>{children}</Providers>
+        <Providers>
+          <SiteNav />
+          {children}
+        </Providers>
       </body>
     </html>
   );

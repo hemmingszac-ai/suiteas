@@ -1,0 +1,415 @@
+/* Suite as marketplace, styled to the Suiteas design system.
+   All classes prefixed ksm-. Tokens reference the design system variables
+   (tokens/colors.css etc.) and fall back to the same values, so the page
+   works standalone and follows your site tokens when they are loaded.
+   Archivo is already self-hosted via @font-face in app/globals.css, so the
+   Google Fonts @import from the original export is intentionally dropped. */
+
+.ksm-page {
+  --ksm-paper: var(--color-paper, #f3f2f2);
+  --ksm-surface: var(--color-surface, #faf9f8);
+  --ksm-ink: var(--color-ink, #201e1d);
+  --ksm-ink-soft: var(--color-neutral-800, #2d2a28);
+  --ksm-muted: var(--color-neutral-600, #5c5854);
+  --ksm-faint: var(--color-neutral-400, #a8a4a0);
+  --ksm-tint: var(--color-neutral-200, #e5e3e1);
+  --ksm-tint-deep: var(--color-neutral-300, #cfccc9);
+  --ksm-kaha: var(--color-kaha-500, #ec3013);
+  --ksm-kaha-hover: var(--color-kaha-600, #c92810);
+  --ksm-kaha-pressed: var(--color-kaha-700, #a1200d);
+  --ksm-kaha-tint: var(--color-kaha-100, #fde8e3);
+  --ksm-kaha-text: var(--color-accent-text, #a1200d);
+  --ksm-rule: 2px solid var(--ksm-ink);
+
+  min-height: 100vh;
+  background: var(--ksm-paper);
+  color: var(--ksm-ink);
+  font-family: var(--font-body, 'Archivo', sans-serif);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.ksm-page *:focus-visible {
+  outline: 2px solid var(--ksm-kaha);
+  outline-offset: 2px;
+}
+
+/* ---------------- Header + search ---------------- */
+
+.ksm-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 16px clamp(16px, 4vw, 48px) 24px;
+  background: var(--ksm-paper);
+  border-bottom: var(--ksm-rule);
+}
+
+.ksm-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.ksm-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: -0.01em;
+}
+
+.ksm-logo-mark svg {
+  width: 32px;
+  height: 32px;
+  display: block;
+}
+
+.ksm-logo-sub {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ksm-muted);
+}
+
+.ksm-search {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  background: #ffffff;
+  border: var(--ksm-rule);
+}
+
+.ksm-search:focus-within {
+  border-color: var(--ksm-kaha);
+}
+
+.ksm-search--listening {
+  border-color: var(--ksm-kaha);
+}
+
+.ksm-search-glass {
+  width: 20px;
+  flex: none;
+  align-self: center;
+  margin-left: 14px;
+  color: var(--ksm-muted);
+}
+
+.ksm-search-input {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--ksm-ink);
+  font-family: inherit;
+  font-size: 16px;
+  padding: 14px 12px;
+}
+
+.ksm-search-input::placeholder {
+  color: var(--ksm-faint);
+}
+
+/* The voice button inside the search bar: the one red action in the header */
+.ksm-mic {
+  flex: none;
+  width: 52px;
+  border: none;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  color: var(--ksm-paper);
+  background: var(--ksm-kaha);
+  transition: background 0.15s ease-out;
+}
+
+.ksm-mic svg {
+  width: 20px;
+  height: 20px;
+}
+
+.ksm-mic:hover:not(:disabled) { background: var(--ksm-kaha-hover); }
+.ksm-mic:active:not(:disabled) { background: var(--ksm-kaha-pressed); }
+
+.ksm-mic:disabled {
+  background: var(--ksm-tint-deep);
+  color: var(--ksm-muted);
+  cursor: not-allowed;
+}
+
+.ksm-mic--on {
+  background: var(--ksm-ink);
+  animation: ksm-blink 1.2s steps(2, start) infinite;
+}
+
+@keyframes ksm-blink {
+  0% { background: var(--ksm-ink); }
+  50% { background: var(--ksm-kaha); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ksm-mic--on { animation: none; background: var(--ksm-kaha-pressed); }
+  .ksm-mic, .ksm-btn { transition: none; }
+}
+
+.ksm-listening-hint {
+  margin: 8px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ksm-kaha-text);
+}
+
+/* ---------------- Layout ---------------- */
+
+.ksm-main {
+  padding: 8px clamp(16px, 4vw, 48px) 64px;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.ksm-section {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: var(--ksm-rule);
+}
+
+.ksm-section:first-of-type {
+  border-top: none;
+  margin-top: 24px;
+  padding-top: 0;
+}
+
+.ksm-kicker {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ksm-kaha-text);
+  margin: 0 0 6px;
+}
+
+.ksm-section-title {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0 0 4px;
+}
+
+.ksm-section-sub {
+  margin: 0 0 24px;
+  color: var(--ksm-muted);
+  font-size: 15px;
+  max-width: 62ch;
+}
+
+.ksm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(256px, 1fr));
+  gap: 12px;
+}
+
+/* ---------------- Cards ---------------- */
+
+.ksm-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--ksm-surface);
+  border: var(--ksm-rule);
+  padding: 14px 16px;
+}
+
+/* Premium cards are ink: solid paper or solid ink, nothing between */
+.ksm-card--premium {
+  background: var(--ksm-ink);
+  color: var(--ksm-paper);
+}
+
+.ksm-card-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.ksm-card-icon svg {
+  width: 38px;
+  height: 38px;
+  display: block;
+}
+
+.ksm-card-name {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.ksm-card-category {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ksm-muted);
+}
+
+.ksm-card--premium .ksm-card-category {
+  color: var(--ksm-faint);
+}
+
+.ksm-badge {
+  margin-left: auto;
+  flex: none;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  background: var(--ksm-kaha-tint);
+  color: var(--ksm-kaha-pressed);
+}
+
+.ksm-badge--match {
+  background: var(--ksm-tint);
+  color: var(--ksm-ink-soft);
+}
+
+.ksm-card--premium .ksm-badge--match {
+  background: var(--ksm-ink-soft);
+  color: var(--ksm-paper);
+}
+
+.ksm-card-desc {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ksm-muted);
+  flex: 1;
+}
+
+.ksm-card--premium .ksm-card-desc {
+  color: var(--ksm-tint-deep);
+}
+
+/* ---------------- Buttons ---------------- */
+
+.ksm-btn {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  border: 2px solid transparent;
+  padding: 7px 12px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  text-align: left;
+  cursor: pointer;
+  background: none;
+  color: inherit;
+  transition: background 0.15s ease-out;
+}
+
+/* Subscribe: the red action */
+.ksm-btn--avax {
+  background: var(--ksm-kaha);
+  color: var(--ksm-paper);
+}
+.ksm-btn--avax:hover { background: var(--ksm-kaha-hover); }
+.ksm-btn--avax:active { background: var(--ksm-kaha-pressed); }
+
+/* Launch free: secondary, 2px ink border */
+.ksm-btn--free {
+  border-color: var(--ksm-ink);
+  color: var(--ksm-ink);
+}
+.ksm-btn--free:hover { background: var(--ksm-tint); }
+.ksm-btn--free:active { background: var(--ksm-tint-deep); }
+
+/* Locked: quiet until the wallet is connected */
+.ksm-btn--locked {
+  border: 2px dashed var(--ksm-tint-deep);
+  color: var(--ksm-muted);
+}
+.ksm-btn--locked:hover { background: var(--ksm-tint); }
+
+.ksm-btn--wallet {
+  width: auto;
+  border-color: var(--ksm-ink);
+  color: var(--ksm-ink);
+  white-space: nowrap;
+}
+.ksm-btn--wallet:hover:not(:disabled) { background: var(--ksm-tint); }
+.ksm-btn--wallet:active:not(:disabled) { background: var(--ksm-tint-deep); }
+.ksm-btn--wallet:disabled { opacity: 0.45; cursor: default; }
+
+/* ---------------- Notices ---------------- */
+
+.ksm-notice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--ksm-ink);
+  color: var(--ksm-paper);
+  padding: 12px 16px;
+  font-size: 13px;
+  margin: 24px 0 0;
+}
+
+.ksm-notice::before {
+  content: "";
+  flex: none;
+  width: 8px;
+  height: 24px;
+  background: var(--ksm-kaha);
+}
+
+.ksm-notice-dismiss {
+  background: none;
+  border: none;
+  color: var(--ksm-paper);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  padding: 0;
+  margin-left: auto;
+}
+
+/* ---------------- Footer: the poster statement ---------------- */
+
+.ksm-footer {
+  background: var(--ksm-kaha);
+  color: var(--ksm-paper);
+  padding: 48px clamp(16px, 4vw, 48px);
+}
+
+.ksm-footer-line {
+  margin: 0;
+  font-size: clamp(22px, 3.5vw, 36px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  max-width: 22ch;
+  text-wrap: balance;
+}
+
+.ksm-footer-small {
+  margin: 16px 0 0;
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+@media (max-width: 560px) {
+  .ksm-logo-sub { display: none; }
+  .ksm-grid { grid-template-columns: 1fr; }
+}

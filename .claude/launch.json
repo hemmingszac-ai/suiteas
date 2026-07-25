@@ -6,6 +6,12 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "web", "dev"],
       "port": 3000
+    },
+    {
+      "name": "widget-demo",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8934", "--directory", "Modal Paywall/export"],
+      "port": 8934
     }
   ]
 }

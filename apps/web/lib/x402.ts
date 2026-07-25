@@ -1,6 +1,8 @@
 import type { Address } from "viem";
-import type { Network, Resource, RouteConfig } from "x402-next";
+import type { Network, RouteConfig } from "x402-next";
 import type { FacilitatorConfig } from "x402/types";
+import { createThirdwebClient } from "thirdweb";
+import { facilitator as thirdwebFacilitator } from "thirdweb/x402";
 import { getAddress } from "@suiteas/shared";
 
 /** The one network koha settles on. x402 already knows Fuji USDC. */
@@ -20,15 +22,21 @@ export function payToAddress(): Address {
 /**
  * Facilitator that verifies + settles the payment.
  *
- * Undefined -> x402-next's default (x402.org, testnet). ARCHITECTURE.md picks the
- * thirdweb facilitator specifically because it settles Avalanche Fuji, so for a
- * real Fuji settlement set X402_FACILITATOR_URL to thirdweb's endpoint. If it
- * needs auth, extend this with `createAuthHeaders` using THIRDWEB_SECRET_KEY.
+ * thirdweb's `facilitator()` (thirdweb/x402) returns an object compatible with
+ * x402-next's FacilitatorConfig directly — no facilitator URL to hunt down. It
+ * settles gaslessly (EIP-7702) using THIRDWEB_SERVER_WALLET_ADDRESS as the
+ * sponsor, funded with Fuji AVAX for gas. Both env vars come from the thirdweb
+ * dashboard (Settings -> API Keys for the secret key; Engine/server wallets for
+ * the address). Undefined -> x402-next's default (x402.org, testnet-only,
+ * likely not Fuji) — fine for exercising the 402 flow, not for a real
+ * settlement.
  */
 export function facilitatorConfig(): FacilitatorConfig | undefined {
-  const url = process.env.X402_FACILITATOR_URL;
-  if (!url) return undefined;
-  return { url: url as Resource };
+  const secretKey = process.env.THIRDWEB_SECRET_KEY;
+  const serverWalletAddress = process.env.THIRDWEB_SERVER_WALLET_ADDRESS;
+  if (!secretKey || !serverWalletAddress) return undefined;
+  const client = createThirdwebClient({ secretKey });
+  return thirdwebFacilitator({ client, serverWalletAddress });
 }
 
 /**
