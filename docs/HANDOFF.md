@@ -12,19 +12,39 @@ pool (the `Suite` contract). The pool splits **on-chain** to member products by
 metered usage. Members also pay each other on the same rail. Chain is
 **Avalanche Fuji**; currency is **USDC** (and, for a prize, a NZD stablecoin).
 
-## Current state (as of handoff)
+## Current state (as of 2026-07-25, end of the second backend session)
+
+Working branch: **`claude/backend-sprint`**, pushed to origin, tree clean, 12
+commits ahead of `origin/main`. `origin/main` is 2 commits ahead of the branch
+(frontend lane: site nav, landing page, logo fix) — **trial-merged and verified
+clean**: zero overlapping files, 41 contract tests + typecheck + build all green
+on the merged tree. Not merged in, so GitHub does the merge.
+
+**The one live blocker: the Fuji deploy needs a signer.** Everything else on the
+critical path is done. `~/.foundry/keystores` is empty. The human must export the
+**C-Chain** private key for `0xa7Dd…6bf1` from their **Core browser extension**
+(Account name top-left → Options next to the account → *Show Private Key* →
+C-Chain), then `cast wallet import suiteas-deployer --interactive`, then broadcast.
+Verify with `cast wallet address --account suiteas-deployer` — if it is not
+`0xa7Dd13442d45450BE26843f6941B659555116bf1` they picked X/P-Chain, which derives
+a different key. Both original accounts were checked on Avalanche **mainnet**: 0
+AVAX, 0 USDC, nonce 0, so exporting that key exposes nothing.
+**Do not create a replacement wallet** — the human explicitly rejected that and
+does not want funds moved. Use the two accounts already in the docs.
+
 - **Live on Vercel** from `main` (commit `cb3b665`): landing + dashboard + x402 route build & deploy green.
 - **Privy login wired** and App ID set. Login works once the live URL is in Privy's allowed origins.
 - **Contracts written and tested, NOT deployed:** `Suite.sol` (pool + `distribute`), `AccessPass.sol` (soulbound membership credential), `KohaRecord.sol` (permanent giving record, never burns), `UsageSplit.sol` (split maths). `forge test` passes on a real machine (41 tests). Deploy + distribute scripts exist; the Fuji deploy has been dry-run against live Fuji (~0.0136 AVAX of the owner's 0.5) and is one keystore import away from broadcasting.
 - **Settlement token is configurable** — dNZD intended, Fuji USDC the fallback. Nothing about the token is hardcoded in Solidity or in the x402 config.
-- **x402 route live** (`app/api/protected/route.ts`): unpaid GET → HTTP 402 (verified). Client `ContributeButton` wired via `x402-fetch`.
+- **x402 route live + facilitator resolved** (`app/api/protected/route.ts`): unpaid GET → 402 with a correct quote, verified live against the PayAI facilitator (`avalanche-fuji`, Fuji USDC, `10000` atomic, EIP-712 `{USD Coin, 2}`). Client `ContributeButton` wired via `x402-fetch`. A *paid* settlement is still unproven — needs a browser click.
 - **Pool counter + AccessPass card read on-chain** but show `—` / mock until contracts are deployed.
 - **`packages/shared/src/addresses.json`**: `Suite`/`AccessPass`/`KohaRecord` are still **zero addresses**. `SettlementToken` and `USDC` are both set to the verified Fuji USDC address.
 
 ## Git / push reality — READ THIS
-- Work was done on branch `claude/remote-control-architecture-qkg9a1`, merged to `main` (`cb3b665`).
-- The origin Claude sandbox **could not push** (hard 403). Code reached GitHub via a **git bundle** that the human pushed from their Mac. **If your sandbox also can't push, use the same escape hatch:** `git bundle create out.bundle --branches` → hand it to the human → they push.
-- Commits show **"Unverified"** on GitHub (no signing key in the sandbox). Cosmetic — ignore.
+- **Pushing works from the human's Mac.** The 403 below was sandbox-specific; `git push` to `origin` succeeded repeatedly in the 2026-07-25 session. Don't reach for the bundle workaround before trying a normal push.
+- Historic note: the first session ran in a sandbox that **could not push** (hard 403) and shipped via a **git bundle**. If you are in a sandbox and hit 403: `git bundle create out.bundle --branches` → hand to the human.
+- The first session's work is on branch `claude/remote-control-architecture-qkg9a1` (tip `cb3b665`), which **is** an ancestor of `origin/main` — so the content landed, but `cb3b665` is a branch tip, not a commit on `main`. `main` has moved past it twice since.
+- Commits show **"Unverified"** on GitHub (no signing key). Cosmetic — ignore.
 
 ## Stack
 Avalanche Fuji (43113) · x402 (PayAI facilitator) · USDC (+ future DNZD) ·
@@ -48,7 +68,7 @@ packages/shared/
   src/addresses.json           # SOURCE OF TRUTH for addresses — never hardcode
   src/abis/                    # Suite.json, AccessPass.json
 contracts/script/
-  Deploy.s.sol                 # Suite + AccessPass, env-driven, not yet run on Fuji
+  Deploy.s.sol                 # Suite + AccessPass + KohaRecord, env-driven, not yet broadcast
   Distribute.s.sol             # seeded usage -> Suite.distribute
   usage.example.json           # the reviewed split input
 scripts/
@@ -59,19 +79,60 @@ docs/
   FLOWS.md, X402.md, SCOPE.md, AUTH.md         # written in the backend sprint
 ```
 
+## What the 2026-07-25 session changed
+
+Four commits on `claude/backend-sprint`, all pushed:
+
+| Commit | What |
+|---|---|
+| `dab17fa` | **`KohaRecord.sol` + 10 tests.** Invariant #1 enforced structurally: `_update` reverts `NeverBurns()` on any burn, so it holds even if a future edit adds a burn path. Wired into `Deploy.s.sol`, `pnpm abis`, `pnpm addresses`, `Deploy.t.sol`. Also fixed `docs/DEPLOY.md` telling you to create `script/usage.json`, which is **not** gitignored — now `usage.local.json`, which is. |
+| `e787a94` | **PayAI as the x402 facilitator.** Killed the "thirdweb costs money" blocker. No code change needed — `facilitatorConfig()` already read only the URL. |
+| `f269017`, `2978e5b` | A keystore-password-file ignore, then its revert. Net zero — see the rejected approach below. |
+
+**Verified by running it, not by reading docs:**
+- 41 contract tests pass (`forge test`), up from 31.
+- Fuji deploy **dry-run against live Fuji** several times, clean. Predicted addresses with the original owner: `Suite 0x9CFE88A4…`, `AccessPass 0x1408C217…`, `KohaRecord 0x553FAC97…`. Cost ~0.022–0.043 AVAX depending on gas price.
+- PayAI `/supported` lists `exact` on `avalanche-fuji`; `/verify` and `/settle` answer 200.
+- Unpaid `GET /api/protected` → 402 with the correct quote.
+- `pnpm typecheck` and `pnpm build` green, before and after a trial merge of `origin/main`.
+- Both original wallets have zero mainnet exposure (0 AVAX / 0 USDC / nonce 0).
+
+**An approach that was tried and explicitly rejected — do not repeat it.** When the
+owner wallet's key could not be located, a fresh deploy wallet was generated
+(`0x46a0C2EA…`) with a faucet-funding plan. The human rejected it: they want the
+**original two wallets** used and **no funds moved**. It was fully reverted —
+keystore deleted, password file deleted, `contracts/.env` restored, ignore rule
+reverted. The correct path is exporting the existing key from Core.
+
 ## Your priority queue
 
 Backend sprint done: deploy script, seeded split workflow, settlement-token
-config, the four missing docs. Everything left is blocked on a human input or is
-deferred scope.
+config, the four missing docs, `KohaRecord`, and the facilitator. Everything left
+is blocked on a human input or is deferred scope.
 
-1. **Run the deploy on Fuji.** `contracts/script/Deploy.s.sol` deploys all three
-   contracts and has been **dry-run against live Fuji successfully**;
-   `contracts/.env` is in place with Fuji USDC as the settlement token (dNZD
-   cannot settle over x402, so USDC is the call — `docs/DNZD.md`). The only thing
-   left is the signer: `~/.foundry/keystores` is empty, so run
-   `cast wallet import suiteas-deployer --interactive` and then broadcast. Exact
-   commands: `docs/DEPLOY.md`. Lights up the pool counter and the AccessPass card.
+1. **Run the deploy on Fuji — the only thing on the critical path.**
+   `contracts/script/Deploy.s.sol` deploys all three contracts and has been
+   dry-run against live Fuji successfully. `contracts/.env` exists (gitignored)
+   with Fuji USDC as the settlement token and `0xa7Dd…6bf1` as owner. Blocked
+   solely on the signer — see "Current state" above for the Core export path.
+   Exact commands: `docs/DEPLOY.md`.
+
+   **Once the human confirms the keystore exists, do all of this without asking:**
+   ```bash
+   cd contracts && forge script script/Deploy.s.sol --rpc-url fuji \
+     --account suiteas-deployer --broadcast
+   cd .. && pnpm addresses          # deployments/43113.json -> addresses.json
+   # set X402_PAY_TO to the new Suite address in apps/web/.env.local AND Vercel
+   pnpm typecheck && pnpm build
+   # verify on-chain:
+   cast call <SUITE> "settlementToken()(address)" --rpc-url fuji   # -> Fuji USDC
+   cast call <SUITE> "owner()(address)" --rpc-url fuji             # -> 0xa7Dd…6bf1
+   cast call <KOHA_RECORD> "totalRecorded()(uint256)" --rpc-url fuji
+   # re-run the 402 smoke test and confirm payTo is now the Suite address
+   ```
+   Then sweep the docs that still say "nothing is deployed": `docs/DEPLOY.md`
+   (line 5), `docs/CONTRACTS.md`, this file, `ARCHITECTURE.md`. Lights up the pool
+   counter and the AccessPass card, which currently render `—`.
 2. **x402 facilitator — no longer blocked.** `X402_FACILITATOR_URL` is set to
    PayAI (`https://facilitator.payai.network`), which settles avalanche-fuji and
    needs **no API key**, so the paid thirdweb plan is not required. Verified live:
