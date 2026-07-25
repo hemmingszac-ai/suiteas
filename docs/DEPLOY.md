@@ -1,6 +1,6 @@
 # DEPLOY
 
-Deploying `Suite` + `AccessPass` to Avalanche Fuji, and running the split.
+Deploying `Suite` + `AccessPass` + `KohaRecord` to Avalanche Fuji, and running the split.
 
 **Nothing is deployed yet.** The scripts are written and rehearsed against a
 local anvil; the Fuji run is deliberately held until the dNZD token details
@@ -14,8 +14,8 @@ arrive, so the pool is not deployed pointing at a token we intend to replace.
 | Demo payer | `0x32f720F098816BCfe19d694D81fF9Bd8e27DaFE4` | Fuji test USDC |
 | Member recipients | not yet chosen | needed before broadcasting a split |
 
-The owner/oracle wallet owns both contracts and is the only account that can call
-`Suite.distribute` and `AccessPass.mint`.
+The owner/oracle wallet owns all three contracts and is the only account that can
+call `Suite.distribute`, `AccessPass.mint` and `KohaRecord.record`.
 
 ## The signing key never enters this repo
 
@@ -72,8 +72,8 @@ pnpm abis               # only if the contracts changed
 pnpm typecheck && pnpm build
 ```
 
-`pnpm addresses` writes `Suite`, `AccessPass` and `SettlementToken`, leaving other
-keys alone. Never hand-edit an address into code.
+`pnpm addresses` writes `Suite`, `AccessPass`, `KohaRecord` and `SettlementToken`,
+leaving other keys alone. Never hand-edit an address into code.
 
 Optional sanity checks:
 
@@ -81,6 +81,7 @@ Optional sanity checks:
 cast call <SUITE> "settlementToken()(address)" --rpc-url fuji
 cast call <SUITE> "owner()(address)" --rpc-url fuji
 cast call <SUITE> "poolBalance()(uint256)" --rpc-url fuji
+cast call <KOHA_RECORD> "totalRecorded()(uint256)" --rpc-url fuji
 ```
 
 ## 2. Point x402 at the pool
@@ -90,12 +91,40 @@ address (or unset it so `addresses.json` supplies it). Confirm the smoke test in
 `docs/X402.md` still returns 402 unpaid, and that a paid call increases
 `poolBalance()`.
 
-## 3. Run the split
+## 3. Attest the koha (optional, for the portability story)
+
+`KohaRecord` is the permanent giving record. Like `Suite`, it cannot see koha
+itself — EIP-3009 has no recipient callback — so the oracle wallet attests each
+one. Amounts are in the settlement token's atomic units (USDC: 6 dp, so
+`10000` = $0.01).
+
+```bash
+# one koha
+cast send <KOHA_RECORD> "record(address,uint256)" <GIVER> 10000 \
+  --rpc-url fuji --account suiteas-deployer
+
+# a period in one transaction — note the zero-payer, which must succeed
+cast send <KOHA_RECORD> "recordMany(address[],uint256[])" \
+  "[<GIVER_A>,<GIVER_B>]" "[10000,0]" \
+  --rpc-url fuji --account suiteas-deployer
+
+# read it back
+cast call <KOHA_RECORD> "totalGiven(address)(uint256)" <GIVER> --rpc-url fuji
+cast call <KOHA_RECORD> "kohaCount(address)(uint256)" <GIVER> --rpc-url fuji
+```
+
+The first `record` for an address mints their soulbound token; later ones
+accumulate onto it. There is deliberately no burn path — see `docs/CONTRACTS.md`.
+
+## 4. Run the split
 
 ```bash
 cd contracts
-cp script/usage.example.json script/usage.json     # put real member wallets in
+cp script/usage.example.json script/usage.local.json   # put real member wallets in
 ```
+
+`usage.local.json` is the gitignored working copy — use that name, not `usage.json`,
+so real member wallets never get committed.
 
 The file is two parallel arrays — same length, zero usage allowed:
 
@@ -105,11 +134,11 @@ The file is two parallel arrays — same length, zero usage allowed:
 
 ```bash
 # dry run — prints the plan and every allocation, broadcasts nothing
-USAGE_FILE=script/usage.json forge script script/Distribute.s.sol \
+USAGE_FILE=script/usage.local.json forge script script/Distribute.s.sol \
   --rpc-url fuji --sender 0xa7Dd13442d45450BE26843f6941B659555116bf1
 
 # settle it
-USAGE_FILE=script/usage.json forge script script/Distribute.s.sol \
+USAGE_FILE=script/usage.local.json forge script script/Distribute.s.sol \
   --rpc-url fuji --account suiteas-deployer --broadcast
 ```
 

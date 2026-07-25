@@ -21,7 +21,12 @@ const ADDRESS = /^0x[0-9a-fA-F]{40}$/;
 // Artifact key -> addresses.json key. SettlementToken is what koha settles in
 // (Fuji USDC for now, dNZD later); USDC stays as its own entry so existing
 // frontend reads keep working.
-const KEYS = { Suite: "Suite", AccessPass: "AccessPass", SettlementToken: "SettlementToken" };
+const KEYS = {
+  Suite: "Suite",
+  AccessPass: "AccessPass",
+  KohaRecord: "KohaRecord",
+  SettlementToken: "SettlementToken",
+};
 
 const artifactPath = resolve(root, `contracts/deployments/${chainId}.json`);
 const addressesPath = resolve(root, "packages/shared/src/addresses.json");

@@ -26,10 +26,11 @@ here. The source is named so it can be argued with.
 
 Not rejected. Just not before the flows that are already half-built.
 
-- **KohaRecord.** The permanent giving record. Contract not written; the address
-  is a zero entry in `addresses.json`. Build it only if pursuing the portability
-  pitch. Invariant if built: **it never burns** — AccessPass burns on lapse, the
-  giving record does not. (`CLAUDE.md`, `docs/HANDOFF.md` #5)
+- **A KohaRecord UI.** The contract is **built and tested** (`docs/CONTRACTS.md`)
+  and deploys with the others, so the giving record is readable on-chain — but
+  nothing renders it. The ABI is in `packages/shared/src/abis/KohaRecord.json`
+  and the address in `addresses.json`, so a card is a frontend-lane task, not a
+  backend one. (`AGENTS.md`)
 - **Supabase.** Not wired into the code and not required to begin. Usage is a
   reviewed JSON file for now. Recorded as a later integration task, not a
   blocker. (`SETUP(1).md` §6, `docs/HANDOFF.md`)

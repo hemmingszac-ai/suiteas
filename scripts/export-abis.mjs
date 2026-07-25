@@ -8,7 +8,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CONTRACTS = ["Suite", "AccessPass"];
+const CONTRACTS = ["Suite", "AccessPass", "KohaRecord"];
 
 for (const name of CONTRACTS) {
   const artifactPath = resolve(root, `contracts/out/${name}.sol/${name}.json`);

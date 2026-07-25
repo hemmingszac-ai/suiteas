@@ -5,8 +5,8 @@ Minimal on-chain surface for the demo. Read before any Solidity.
 - **`Suite.sol`** — the shared pool. The core of the demo.
 - **`AccessPass.sol`** — soulbound membership credential (identity track).
 - **`UsageSplit.sol`** — pure library, the split arithmetic. Not deployed.
-- **`KohaRecord`** — not written. See `docs/SCOPE.md`. If built: it **never
-  burns**; AccessPass burns on lapse, the giving record does not.
+- **`KohaRecord.sol`** — the permanent giving record. **Never burns**; AccessPass
+  burns on lapse, the giving record does not.
 
 Solidity ^0.8.24, OpenZeppelin for anything standard, `evm_version = cancun`
 (OZ 5.1 uses `mcopy`; Avalanche supports Cancun via Durango).
@@ -54,22 +54,60 @@ seeded usage into the `amounts` array. Guarantees `sum(amounts) <= distributable
 and returns the shortfall as `remainder`, which stays pooled for the next period.
 Zero total weight allocates nothing and carries the whole pool forward.
 
+## KohaRecord.sol
+
+The permanent record of what you gave. Soulbound ERC-721, one per giver.
+
+Not a claim on the pool and not ownership of anything — a statement of
+contribution you can carry to another bundle: *"I gave this much, this often."*
+That is the portability pitch, and it only works if the record outlives the
+membership.
+
+- `record(address giver, uint256 amount)` — `onlyOwner`. Opens the giver's record
+  on their first koha, then accumulates. Returns the tokenId.
+- `recordMany(address[] givers, uint256[] amounts)` — `onlyOwner`. A period in one
+  transaction; same parallel-array shape as `Suite.distribute`.
+- `totalGiven(address)` / `kohaCount(address)` / `recordOf(address)` / `hasRecord(address)`.
+- `totalRecorded()` / `giverCount()` — collective totals, for a headline figure.
+
+Same off-chain trust model as `Suite.distribute`: the contract cannot observe koha
+(EIP-3009 has no recipient callback), so the oracle wallet attests it. Disclosed,
+not hidden.
+
+**Why the burn path is blocked rather than just absent.** `_update` reverts
+`NeverBurns()` on any `to == address(0)`, so the invariant holds even if a future
+edit adds a burn function. Leaving it merely unimplemented would make invariant #1
+a fact about today's code instead of a property of the contract.
+
+**Zero-amount koha is a first-class record.** `record(giver, 0)` mints and
+increments `kohaCount`. A zero-payer has a giving history like anyone else — that
+is the thesis, not an edge case.
+
 ## Tests
 
-Per `CLAUDE.md`, the two invariants that must not break come first:
+Per `CLAUDE.md`, the invariants that must not break come first:
 
 1. **No wei lost** — `test_Distribute_NoWeiLost`: paid-out + remainder == start.
    Also `testFuzz_Plan_ConservesValue`, which fuzzes the same property through
    the allocation maths.
-2. **Zero-amount succeeds** — `test_Distribute_ZeroAmountAllowed`: a member with
-   no usage receives nothing without reverting. Also `test_Plan_AllZeroUsage`.
+2. **Record survives an AccessPass burn** —
+   `test_RecordSurvivesAccessPassBurn`: the member lapses, the credential burns,
+   the record and its totals stand, and re-subscribing lands on the *same* record.
+   Also `test_NeverBurns_GuardRejectsBurn`, which reaches past the (absent) burn
+   path to prove the guard itself rejects one.
+3. **Zero-amount succeeds** — `test_Distribute_ZeroAmountAllowed`: a member with
+   no usage receives nothing without reverting. Also `test_Plan_AllZeroUsage` and
+   `test_Record_ZeroAmountSucceeds`.
 
 | File | Covers |
 |---|---|
 | `test/Suite.t.sol` | split by amounts, no wei lost, zero amount, exceeds-pool revert, length mismatch, only-owner, zero-token constructor, decimals-agnostic |
 | `test/AccessPass.t.sol` | mint, one-per-address, only-owner, soulbound transfer revert, burn, re-mint after burn |
-| `test/Deploy.t.sol` | the deploy script's env wiring: owner/oracle owns both contracts, Suite points at the configured token, missing addresses rejected |
+| `test/KohaRecord.t.sol` | opens on first koha, zero-amount koha, accumulation onto one token, only-owner, zero-giver revert, `recordMany` + length mismatch, soulbound, never-burns guard, survives an AccessPass burn |
+| `test/Deploy.t.sol` | the deploy script's env wiring: owner/oracle owns all three contracts, Suite points at the configured token, missing addresses rejected |
 | `test/Distribute.t.sol` | usage file parsing + bad-input rejection, pro-rata plan, cap, never-exceeds-pool, plan → `distribute` end to end, fuzz |
+
+41 tests, all passing.
 
 Note for anyone adding a test that touches `vm.setEnv`: forge runs test functions
 concurrently and env vars are process-global, so cases that set the same variable
@@ -98,8 +136,9 @@ forge script script/Deploy.s.sol --rpc-url fuji --account <keystore> --broadcast
 pnpm addresses                                                            # from repo root
 ```
 
-Constructor: `Suite(settlementToken, owner)` / `AccessPass(owner)`, both from
-environment variables — no address is hardcoded in Solidity. The script refuses
+Constructors: `Suite(settlementToken, owner)`, `AccessPass(owner)`,
+`KohaRecord(owner)` — all from environment variables, no address hardcoded in
+Solidity. The script refuses
 any chain but Fuji (43113) and a local node. It writes
 `contracts/deployments/<chainId>.json`; `pnpm addresses` merges that into
 `packages/shared/src/addresses.json` (the source of truth) and `pnpm abis`

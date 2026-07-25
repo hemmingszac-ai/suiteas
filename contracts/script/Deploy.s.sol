@@ -6,8 +6,9 @@ import {VmSafe} from "forge-std/Vm.sol";
 import {console2} from "forge-std/console2.sol";
 import {Suite} from "../src/Suite.sol";
 import {AccessPass} from "../src/AccessPass.sol";
+import {KohaRecord} from "../src/KohaRecord.sol";
 
-/// @title Deploy — Suite + AccessPass.
+/// @title Deploy — Suite + AccessPass + KohaRecord.
 /// @notice Every address comes from the environment. Nothing is hardcoded here:
 /// swapping Fuji USDC for dNZD is a one-variable change (`SETTLEMENT_TOKEN`).
 ///
@@ -36,6 +37,7 @@ contract Deploy is Script {
     struct Deployment {
         address suite;
         address accessPass;
+        address kohaRecord;
     }
 
     error MissingSettlementToken();
@@ -54,7 +56,12 @@ contract Deploy is Script {
     function deploy(Config memory cfg) public returns (Deployment memory out) {
         Suite suite = new Suite(cfg.settlementToken, cfg.owner);
         AccessPass pass = new AccessPass(cfg.owner);
-        out = Deployment({suite: address(suite), accessPass: address(pass)});
+        KohaRecord koha = new KohaRecord(cfg.owner);
+        out = Deployment({
+            suite: address(suite),
+            accessPass: address(pass),
+            kohaRecord: address(koha)
+        });
     }
 
     function run() external returns (Deployment memory out) {
@@ -74,6 +81,7 @@ contract Deploy is Script {
 
         console2.log("Suite            ", out.suite);
         console2.log("AccessPass       ", out.accessPass);
+        console2.log("KohaRecord       ", out.kohaRecord);
 
         _writeArtifact(cfg, out);
     }
@@ -90,6 +98,7 @@ contract Deploy is Script {
         vm.serializeUint(obj, "chainId", block.chainid);
         vm.serializeAddress(obj, "Suite", out.suite);
         vm.serializeAddress(obj, "AccessPass", out.accessPass);
+        vm.serializeAddress(obj, "KohaRecord", out.kohaRecord);
         string memory json = vm.serializeAddress(obj, "SettlementToken", cfg.settlementToken);
         string memory path = string.concat("deployments/", vm.toString(block.chainid), ".json");
         vm.writeJson(json, path);

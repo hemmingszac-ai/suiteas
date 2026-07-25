@@ -5,6 +5,7 @@ import {Test} from "forge-std/Test.sol";
 import {Deploy} from "../script/Deploy.s.sol";
 import {Suite} from "../src/Suite.sol";
 import {AccessPass} from "../src/AccessPass.sol";
+import {KohaRecord} from "../src/KohaRecord.sol";
 
 /// Local proof that the deploy script wires the right owner and settlement
 /// token from the environment — so the Fuji run is a formality, not a first
@@ -45,12 +46,16 @@ contract DeployTest is Test {
 
         Suite suite = Suite(out.suite);
         AccessPass pass = AccessPass(out.accessPass);
+        KohaRecord koha = KohaRecord(out.kohaRecord);
 
         assertEq(address(suite.settlementToken()), token, "Suite points at the settlement token");
         assertEq(suite.owner(), owner, "owner/oracle owns the pool");
         assertEq(suite.period(), 0);
         assertEq(pass.owner(), owner, "owner/oracle mints passes");
         assertEq(pass.symbol(), "PASS");
+        assertEq(koha.owner(), owner, "owner/oracle attests koha");
+        assertEq(koha.symbol(), "KOHA");
+        assertEq(koha.totalRecorded(), 0);
     }
 
     /// The env var is the only thing that changes when dNZD replaces USDC.

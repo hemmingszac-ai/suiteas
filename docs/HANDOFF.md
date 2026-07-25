@@ -15,7 +15,7 @@ metered usage. Members also pay each other on the same rail. Chain is
 ## Current state (as of handoff)
 - **Live on Vercel** from `main` (commit `cb3b665`): landing + dashboard + x402 route build & deploy green.
 - **Privy login wired** and App ID set. Login works once the live URL is in Privy's allowed origins.
-- **Contracts written and tested, NOT deployed:** `Suite.sol` (pool + `distribute`), `AccessPass.sol` (soulbound membership credential), `UsageSplit.sol` (split maths). `forge test` now runs and passes on a real machine (31 tests). Deploy + distribute scripts exist and were rehearsed against a local anvil.
+- **Contracts written and tested, NOT deployed:** `Suite.sol` (pool + `distribute`), `AccessPass.sol` (soulbound membership credential), `KohaRecord.sol` (permanent giving record, never burns), `UsageSplit.sol` (split maths). `forge test` passes on a real machine (41 tests). Deploy + distribute scripts exist; the Fuji deploy has been dry-run against live Fuji (~0.0136 AVAX of the owner's 0.5) and is one keystore import away from broadcasting.
 - **Settlement token is configurable** — dNZD intended, Fuji USDC the fallback. Nothing about the token is hardcoded in Solidity or in the x402 config.
 - **x402 route live** (`app/api/protected/route.ts`): unpaid GET → HTTP 402 (verified). Client `ContributeButton` wired via `x402-fetch`.
 - **Pool counter + AccessPass card read on-chain** but show `—` / mock until contracts are deployed.
@@ -40,8 +40,9 @@ apps/web/
   components/, app/*           # UI (OTHER dev's lane)
 contracts/
   src/Suite.sol                # pool + distribute() (deployed addr → payTo)
-  src/AccessPass.sol           # soulbound credential
-  test/*.t.sol                 # forge tests (not yet run)
+  src/AccessPass.sol           # soulbound credential (burns on lapse)
+  src/KohaRecord.sol           # permanent giving record (never burns)
+  test/*.t.sol                 # forge tests — 41, all passing
   foundry.toml                 # remappings; evm cancun
 packages/shared/
   src/addresses.json           # SOURCE OF TRUTH for addresses — never hardcode
@@ -64,11 +65,13 @@ Backend sprint done: deploy script, seeded split workflow, settlement-token
 config, the four missing docs. Everything left is blocked on a human input or is
 deferred scope.
 
-1. **Run the deploy on Fuji.** `contracts/script/Deploy.s.sol` is written and
-   rehearsed against a local anvil, deliberately not broadcast — deploying now
-   would point the pool at USDC when the plan is dNZD, and
-   `Suite.settlementToken` is immutable. Exact commands: `docs/DEPLOY.md`.
-   Lights up the pool counter and the AccessPass card.
+1. **Run the deploy on Fuji.** `contracts/script/Deploy.s.sol` deploys all three
+   contracts and has been **dry-run against live Fuji successfully**;
+   `contracts/.env` is in place with Fuji USDC as the settlement token (dNZD
+   cannot settle over x402, so USDC is the call — `docs/DNZD.md`). The only thing
+   left is the signer: `~/.foundry/keystores` is empty, so run
+   `cast wallet import suiteas-deployer --interactive` and then broadcast. Exact
+   commands: `docs/DEPLOY.md`. Lights up the pool counter and the AccessPass card.
 2. **x402 facilitator** — set `X402_FACILITATOR_URL` (+ `THIRDWEB_SECRET_KEY` if
    it needs auth) so x402 actually settles on Fuji. Blocked: thirdweb is
    unconfigured because the available plan appears paid. Smoke test: unpaid
@@ -84,9 +87,12 @@ deferred scope.
    (`contracts/script/Distribute.s.sol`, seeded JSON, `onlyOwner` oracle).
    Needs: the member recipient addresses. Hand-seeded usage is fine and
    disclosed.
-5. **`KohaRecord`** — not built. Invariant: the **permanent** giving record,
-   **never burns** (AccessPass burns on lapse; KohaRecord does not). Build only
-   if pursuing the portability pitch — `docs/SCOPE.md`.
+5. **`KohaRecord`** — **built, tested (10 tests), deploys with the others.** The
+   permanent giving record: soulbound, one per giver, `record`/`recordMany`
+   attested by the oracle, and the burn path is blocked in `_update` so the
+   invariant is structural. `test_RecordSurvivesAccessPassBurn` is the named
+   invariant test. Not deployed yet (same deploy as #1) and **nothing renders it**
+   — a card is a frontend-lane task. `docs/CONTRACTS.md`.
 6. **Member ↔ member flow (flow 4, the differentiator)** — one member's API calls
    another's paid route, paying x402 into the pool. No contract work needed; it
    is flow 2 with a server as the payer. `docs/FLOWS.md`.

@@ -39,7 +39,7 @@ suiteas/
 │   ├── SCOPE.md
 │   └── DEPLOY.md              # deploy runbook + the switch to dNZD
 ├── contracts/                 # Foundry
-│   ├── src/{Suite.sol,AccessPass.sol,UsageSplit.sol}   # KohaRecord not built
+│   ├── src/{Suite.sol,AccessPass.sol,KohaRecord.sol,UsageSplit.sol}
 │   └── script/{Deploy.s.sol,Distribute.s.sol}
 ├── scripts/                   # export-abis / sync-addresses (pnpm abis|addresses)
 ├── packages/
