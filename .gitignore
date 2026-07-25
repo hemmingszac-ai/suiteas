@@ -16,10 +16,6 @@ dist/
 .env.local
 .env*.local
 
-# keystore password for the testnet deploy wallet. The KEY itself lives encrypted
-# in ~/.foundry/keystores and is never in this repo — this only unlocks it.
-.deployer-password
-
 # misc
 .DS_Store
 *.log
