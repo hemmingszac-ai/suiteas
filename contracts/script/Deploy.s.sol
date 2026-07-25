@@ -83,25 +83,37 @@ contract Deploy is Script {
         console2.log("AccessPass       ", out.accessPass);
         console2.log("KohaRecord       ", out.kohaRecord);
 
-        _writeArtifact(cfg, out);
+        if (vm.isContext(VmSafe.ForgeContext.ScriptBroadcast)) {
+            console2.log("");
+            console2.log("Now run `pnpm addresses` from the repo root to record these.");
+            console2.log("The addresses above are SIMULATED - see the note below.");
+        } else {
+            console2.log("dry run - nothing broadcast");
+        }
     }
 
-    /// @dev Writes deployments/<chainId>.json. `pnpm addresses` merges that into
-    /// packages/shared/src/addresses.json — the source of truth the app reads.
-    /// Only runs when actually broadcasting, so a dry run leaves no artifact.
-    function _writeArtifact(Config memory cfg, Deployment memory out) internal {
-        if (!vm.isContext(VmSafe.ForgeContext.ScriptBroadcast)) {
-            console2.log("dry run - no deployment artifact written");
-            return;
-        }
-        string memory obj = "deployment";
-        vm.serializeUint(obj, "chainId", block.chainid);
-        vm.serializeAddress(obj, "Suite", out.suite);
-        vm.serializeAddress(obj, "AccessPass", out.accessPass);
-        vm.serializeAddress(obj, "KohaRecord", out.kohaRecord);
-        string memory json = vm.serializeAddress(obj, "SettlementToken", cfg.settlementToken);
-        string memory path = string.concat("deployments/", vm.toString(block.chainid), ".json");
-        vm.writeJson(json, path);
-        console2.log("wrote", path);
-    }
+    /// @dev This script deliberately does NOT write deployments/<chainId>.json.
+    ///
+    /// It used to, using the addresses from its own simulation, and that is unsafe
+    /// under `--resume`. A resumed run re-simulates the script to rebuild the
+    /// transaction list, but starts from current on-chain state where the sender's
+    /// nonce has already advanced past the transactions that landed. CREATE
+    /// addresses derive from sender + nonce, so every `new Foo()` predicts the
+    /// next slot and the whole record shifts by however many transactions already
+    /// went through.
+    ///
+    /// It bit us on the 2026-07-25 Fuji deploy: the first attempt timed out after
+    /// Suite was mined, the resumed run re-simulated from nonce 1, and the artifact
+    /// was rewritten as Suite=<AccessPass's address>, AccessPass=<KohaRecord's
+    /// address>, KohaRecord=<an address with no code>. Since X402_PAY_TO is the
+    /// Suite address, koha would have settled into AccessPass — an ERC-721 with no
+    /// way to move an ERC-20 out, so the funds would have been unrecoverable.
+    ///
+    /// `vm.isContext(ScriptBroadcast)` does not help: a resumed run is still a
+    /// broadcast context, so the guard passes and writes bad data.
+    ///
+    /// The record is now built by `scripts/sync-addresses.mjs` (`pnpm addresses`)
+    /// from `broadcast/Deploy.s.sol/<chainId>/run-latest.json`. Receipt addresses
+    /// are what the chain actually created, so they cannot shift, and that script
+    /// additionally refuses any address with no bytecode.
 }

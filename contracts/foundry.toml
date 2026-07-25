@@ -13,10 +13,15 @@ remappings = [
     "@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/",
     "forge-std/=lib/forge-std/src/",
 ]
-# Deploy writes deployments/<chainId>.json; Distribute reads the seeded usage
-# file from script/. Nothing else on disk is reachable from a script.
+# Distribute READS deployments/<chainId>.json and the seeded usage file. Nothing
+# else on disk is reachable from a script.
+#
+# `deployments` is read-only on purpose: Deploy.s.sol used to write that file from
+# its own simulated addresses, which a `--resume` run silently corrupts (see the
+# note at the bottom of script/Deploy.s.sol). `pnpm addresses` now builds it from
+# broadcast receipts instead, so no script needs write access.
 fs_permissions = [
-    { access = "read-write", path = "./deployments" },
+    { access = "read", path = "./deployments" },
     { access = "read", path = "./script" },
     { access = "read", path = "./test/fixtures" },
 ]
