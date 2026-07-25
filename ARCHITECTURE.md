@@ -18,7 +18,7 @@ Blockchain is load-bearing in two places: the split has to be trustless or no Sa
 | Payment rail | **x402** (HTTP 402) | Per-request micropayments, gasless for users via EIP-3009, no billing infra to build |
 | x402 facilitator | thirdweb (`thirdweb/x402`) | Supports Avalanche C-Chain and Fuji, well documented |
 | Middleware | `x402-next` | Drops into Next.js route handlers |
-| Currency | USDC (Fuji testnet USDC) | EIP-3009 path = gasless, no approval step |
+| Currency | **Settlement token** — dNZD (New Money testnet stablecoin) intended; Fuji USDC as the temporary fallback | EIP-3009 path = gasless, no approval step. Configurable, not hardcoded — see `docs/X402.md` |
 | Contracts | Solidity ^0.8.24 + Foundry | Only two contracts — x402 does the payment work |
 | Web | Next.js 14 App Router + TypeScript | One framework for UI and API routes |
 | Auth | Privy | Email → embedded Avalanche wallet, no seed phrase |
@@ -36,15 +36,18 @@ suiteas/
 │   ├── X402.md                # payment rail integration
 │   ├── CONTRACTS.md
 │   ├── AUTH.md
-│   └── SCOPE.md
-├── contracts/                 # Foundry — only 3 contracts
-│   └── src/{Suite.sol,AccessPass.sol,KohaRecord.sol}
+│   ├── SCOPE.md
+│   └── DEPLOY.md              # deploy runbook + the switch to dNZD
+├── contracts/                 # Foundry
+│   ├── src/{Suite.sol,AccessPass.sol,UsageSplit.sol}   # KohaRecord not built
+│   └── script/{Deploy.s.sol,Distribute.s.sol}
+├── scripts/                   # export-abis / sync-addresses (pnpm abis|addresses)
 ├── packages/
-│   ├── sdk/                   # embeddable widget, one script tag
-│   └── shared/                # ABIs, addresses, types
+│   ├── sdk/                   # embeddable widget, one script tag — not built
+│   └── shared/                # ABIs, addresses, settlement token, types
 └── apps/
     ├── web/                   # login, dashboard, explorer, modal, API
-    └── demo-saas/             # member product embedding the SDK
+    └── demo-saas/             # member product embedding the SDK — not built
 ```
 
 ## The four money flows
@@ -73,7 +76,7 @@ User hits a paid route in a member SaaS
         ↓ x402-next middleware returns 402 with payment requirements
 Client signs EIP-3009 authorization (gasless — facilitator sponsors)
         ↓ facilitator verifies + settles on Fuji (~1s)
-USDC lands in Suite contract (the pool)
+Settlement token lands in Suite contract (the pool)
         ↓
 Member SaaS posts a signed usage attestation → Supabase
         ↓ at period close, oracle posts usage allocations on-chain

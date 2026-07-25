@@ -41,7 +41,7 @@ Flow 4 is the differentiator. Members are customers of each other, so the networ
 
 ## Stack
 
-Avalanche Fuji · x402 (thirdweb facilitator) · USDC · Foundry · Next.js 14 · Privy · Supabase · Vercel
+Avalanche Fuji · x402 (thirdweb facilitator) · dNZD intended, Fuji USDC fallback · Foundry · Next.js 14 · Privy · Supabase (not yet wired) · Vercel
 
 ## The demo we are protecting
 

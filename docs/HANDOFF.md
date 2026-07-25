@@ -15,10 +15,11 @@ metered usage. Members also pay each other on the same rail. Chain is
 ## Current state (as of handoff)
 - **Live on Vercel** from `main` (commit `cb3b665`): landing + dashboard + x402 route build & deploy green.
 - **Privy login wired** and App ID set. Login works once the live URL is in Privy's allowed origins.
-- **Contracts written + solc-verified, NOT deployed:** `Suite.sol` (pool + `distribute`), `AccessPass.sol` (soulbound membership credential). Foundry tests written but **not run** (Foundry install was egress-blocked in the origin session — solc was used to verify compilation).
+- **Contracts written and tested, NOT deployed:** `Suite.sol` (pool + `distribute`), `AccessPass.sol` (soulbound membership credential), `UsageSplit.sol` (split maths). `forge test` now runs and passes on a real machine (31 tests). Deploy + distribute scripts exist and were rehearsed against a local anvil.
+- **Settlement token is configurable** — dNZD intended, Fuji USDC the fallback. Nothing about the token is hardcoded in Solidity or in the x402 config.
 - **x402 route live** (`app/api/protected/route.ts`): unpaid GET → HTTP 402 (verified). Client `ContributeButton` wired via `x402-fetch`.
 - **Pool counter + AccessPass card read on-chain** but show `—` / mock until contracts are deployed.
-- **`packages/shared/src/addresses.json`**: `Suite`/`AccessPass`/`KohaRecord` are still **zero addresses**. `USDC` is set and verified.
+- **`packages/shared/src/addresses.json`**: `Suite`/`AccessPass`/`KohaRecord` are still **zero addresses**. `SettlementToken` and `USDC` are both set to the verified Fuji USDC address.
 
 ## Git / push reality — READ THIS
 - Work was done on branch `claude/remote-control-architecture-qkg9a1`, merged to `main` (`cb3b665`).
@@ -45,41 +46,66 @@ contracts/
 packages/shared/
   src/addresses.json           # SOURCE OF TRUTH for addresses — never hardcode
   src/abis/                    # Suite.json, AccessPass.json
+contracts/script/
+  Deploy.s.sol                 # Suite + AccessPass, env-driven, not yet run on Fuji
+  Distribute.s.sol             # seeded usage -> Suite.distribute
+  usage.example.json           # the reviewed split input
+scripts/
+  export-abis.mjs              # pnpm abis
+  sync-addresses.mjs           # pnpm addresses — deploy artifact -> addresses.json
 docs/
-  ARCHITECTURE.md, CONTRACTS.md, SPONSORS.md   # exist
-  FLOWS.md, X402.md, SCOPE.md, AUTH.md         # referenced by CLAUDE.md but NOT created yet
+  ARCHITECTURE.md, CONTRACTS.md, SPONSORS.md, DEPLOY.md
+  FLOWS.md, X402.md, SCOPE.md, AUTH.md         # written in the backend sprint
 ```
 
 ## Your priority queue
-1. **Deploy script (Foundry)** — deploy `Suite` + `AccessPass` to Fuji and write their
-   addresses into `packages/shared/src/addresses.json`. This lights up the pool counter,
-   the AccessPass card, and mint-on-contribute. **Highest value; not written yet.**
-2. **thirdweb facilitator** — set `X402_FACILITATOR_URL` (+ `THIRDWEB_SECRET_KEY` if it
-   needs auth) so x402 actually settles on Fuji. Verify the smoke test: unpaid
-   `GET /api/protected` → 402; paid → USDC lands at the `Suite` address (`payTo`).
-3. **Digital NZD (DNZD) — the "New Money" prize track.** The x402 rail is token-agnostic.
-   If the DNZD sponsor has a Fuji test token (EIP-3009/`transferWithAuthorization`
-   support required), point the x402 asset at it in `lib/x402.ts` (`KOHA_ROUTE.price`
-   → `{ amount, asset: { address, decimals, eip712: { name, version } } }`). ~1hr to win a track. **Need the token address.**
-4. **Real metering + split** — currently faked. `Suite.distribute(recipients, amounts)` is
-   `onlyOwner` (the oracle wallet). Seed usage (Supabase or a JSON file), compute the
-   split, call `distribute`. Judges watch it settle on-chain; hand-seeded input is fine.
-5. **`KohaRecord` contract** — not built. Invariant: it is the **permanent** giving record
-   and **never burns** (AccessPass burns on lapse; KohaRecord does not). Build if pursuing
-   the portability pitch.
-6. **Member ↔ member flow (flow 4, the differentiator)** — one member's API calls another's
-   paid route, paying x402 into the pool.
+
+Backend sprint done: deploy script, seeded split workflow, settlement-token
+config, the four missing docs. Everything left is blocked on a human input or is
+deferred scope.
+
+1. **Run the deploy on Fuji.** `contracts/script/Deploy.s.sol` is written and
+   rehearsed against a local anvil, deliberately not broadcast — deploying now
+   would point the pool at USDC when the plan is dNZD, and
+   `Suite.settlementToken` is immutable. Exact commands: `docs/DEPLOY.md`.
+   Lights up the pool counter and the AccessPass card.
+2. **x402 facilitator** — set `X402_FACILITATOR_URL` (+ `THIRDWEB_SECRET_KEY` if
+   it needs auth) so x402 actually settles on Fuji. Blocked: thirdweb is
+   unconfigured because the available plan appears paid. Smoke test: unpaid
+   `GET /api/protected` → 402; paid → balance rises at `payTo`.
+3. **dNZD — the "New Money" prize track.** The configuration surface is built
+   (`apps/web/lib/settlement.ts`, `packages/shared/src/settlement.json`,
+   `SETTLEMENT_TOKEN` for the deploy). Needs from New Money: address, decimals,
+   EIP-712 domain, and **whether it implements EIP-3009** — if it is
+   EIP-2612-only, x402's exact-EVM scheme cannot settle it at all. See
+   `docs/X402.md`.
+4. **Split with real member wallets** — the workflow exists
+   (`contracts/script/Distribute.s.sol`, seeded JSON, `onlyOwner` oracle).
+   Needs: the member recipient addresses. Hand-seeded usage is fine and
+   disclosed.
+5. **`KohaRecord`** — not built. Invariant: the **permanent** giving record,
+   **never burns** (AccessPass burns on lapse; KohaRecord does not). Build only
+   if pursuing the portability pitch — `docs/SCOPE.md`.
+6. **Member ↔ member flow (flow 4, the differentiator)** — one member's API calls
+   another's paid route, paying x402 into the pool. No contract work needed; it
+   is flow 2 with a server as the payer. `docs/FLOWS.md`.
 
 ## Env / keys
+Full list with required/optional/pending split: `.env.example` (web) and
+`contracts/.env.example` (deploy).
 - `NEXT_PUBLIC_PRIVY_APP_ID=cmrzbm07300en0djt6hnvzj5x` (set; public)
 - `X402_PAY_TO` — the `Suite` address (override with a dev wallet to test before deploy)
 - `X402_FACILITATOR_URL` / `THIRDWEB_SECRET_KEY` — **pending** (thirdweb account)
+- `X402_SETTLEMENT_TOKEN_*` / `X402_PRICE_ATOMIC` — **pending** (dNZD). All five or none.
 - Fuji USDC `0x5425890298aed601595a70AB815c96711a31Bc65` — verified, FiatTokenV2 (EIP-3009 ✓)
-- Need: Fuji AVAX + USDC in test wallets; an **owner/oracle wallet** for the contracts.
+- Owner/oracle `0xa7Dd13442d45450BE26843f6941B659555116bf1` (0.5 Fuji AVAX);
+  demo payer `0x32f720F098816BCfe19d694D81fF9Bd8e27DaFE4` (Fuji test USDC).
+- Deploy signer comes from a foundry keystore account (`cast wallet import`), never a file.
 - Secrets live in `apps/web/.env.local` and Vercel env vars only. **Never commit a secret or a private key.**
 
 ## Gotchas
-- Foundry was egress-blocked in the origin sandbox → run `forge install foundry-rs/forge-std && forge test` on a real machine.
+- `forge test` runs test functions **concurrently** and env vars are process-global, so `vm.setEnv` cases for the same variable must live in one test function (see `test/Deploy.t.sol`).
+- `Suite.settlementToken` is immutable — swapping USDC for dNZD means deploying a new pool, not reconfiguring the old one.
 - `evm_version = cancun` (OZ 5.1 uses `mcopy`; Avalanche supports Cancun via Durango).
 - OZ comes from npm (`contracts/node_modules`), forge-std from `lib/`. Remappings in `foundry.toml`.
 - `next.config.mjs` has a `webpack.IgnorePlugin` for `@x402/*` — a wagmi-transitive dep, required while wagmi stays. Don't remove it.
