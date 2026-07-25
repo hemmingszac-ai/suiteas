@@ -46,10 +46,53 @@ type Eip1193Provider = {
   request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
 };
 
-function getProvider(): Eip1193Provider {
+type Eip6963ProviderDetail = {
+  info: { uuid: string; name: string; icon: string; rdns: string };
+  provider: Eip1193Provider;
+};
+
+/** Modern wallets increasingly avoid claiming window.ethereum outright,
+ *  especially with more than one wallet extension installed — they announce
+ *  themselves via EIP-6963 instead so multiple wallets can coexist without
+ *  clobbering each other. Checking window.ethereum alone misses those, which
+ *  looks like "no wallet found" even with a real, unlocked wallet installed. */
+function discoverEip6963Provider(): Promise<Eip1193Provider | undefined> {
+  return new Promise((resolve) => {
+    const found: Eip6963ProviderDetail[] = [];
+    const onAnnounce = (event: Event) => {
+      const detail = (event as CustomEvent<Eip6963ProviderDetail>).detail;
+      if (detail?.provider) found.push(detail);
+    };
+    window.addEventListener("eip6963:announceProvider", onAnnounce);
+    window.dispatchEvent(new Event("eip6963:requestProvider"));
+    setTimeout(() => {
+      window.removeEventListener("eip6963:announceProvider", onAnnounce);
+      // Prefer Core (this project's primary wallet) if more than one answers.
+      const core = found.find((d) => /core/i.test(d.info.name));
+      resolve((core ?? found[0])?.provider);
+    }, 250);
+  });
+}
+
+async function getProvider(): Promise<Eip1193Provider> {
+  const eip6963 = await discoverEip6963Provider();
+  if (eip6963) return eip6963;
   const eth = (window as unknown as { ethereum?: Eip1193Provider }).ethereum;
   if (!eth) throw new Error("No wallet found — install Core or MetaMask to pay with koha.");
   return eth;
+}
+
+/** Wallet extensions can hang instead of rejecting (a popup opened off-screen,
+ *  a stuck extension, a flaky public RPC) — without this, a hung call spins
+ *  the "Waking your wallet..." step forever with no way out. */
+function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(message)), ms);
+    promise.then(
+      (v) => { clearTimeout(timer); resolve(v); },
+      (e) => { clearTimeout(timer); reject(e); },
+    );
+  });
 }
 
 async function ensureFuji(provider: Eip1193Provider) {
@@ -76,21 +119,49 @@ async function ensureFuji(provider: Eip1193Provider) {
   }
 }
 
-/** Connects the injected wallet, switches to Fuji, and reads the USDC balance. */
+/** Connects the injected wallet, switches to Fuji, and reads the USDC balance.
+ *  The wallet popup steps get a generous timeout (a human has to click
+ *  something); the balance read gets a short one and never blocks a
+ *  successful connection — it's informational, not required to pay. */
 export async function connectWallet(): Promise<{ address: string; balance: number }> {
-  const provider = getProvider();
-  const accounts = (await provider.request({ method: "eth_requestAccounts" })) as string[];
+  const provider = await getProvider();
+  const accounts = await withTimeout(
+    provider.request({ method: "eth_requestAccounts" }) as Promise<string[]>,
+    45_000,
+    "Wallet didn't respond. Check for a wallet popup (it may be behind this window), or try again.",
+  );
   const [address] = accounts;
   if (!address) throw new Error("No account returned by the wallet.");
-  await ensureFuji(provider);
-  const publicClient = createPublicClient({ chain: fujiChain, transport: http(FUJI_RPC) });
-  const raw = (await publicClient.readContract({
-    address: FUJI_USDC,
-    abi: balanceOfAbi,
-    functionName: "balanceOf",
-    args: [address as Address],
-  })) as bigint;
-  return { address, balance: Number(formatUnits(raw, 6)) };
+
+  await withTimeout(
+    ensureFuji(provider),
+    45_000,
+    "Wallet didn't respond to the network switch. Check for a wallet popup, or switch to Avalanche Fuji manually and try again.",
+  );
+
+  let balance = 0;
+  try {
+    const publicClient = createPublicClient({
+      chain: fujiChain,
+      transport: http(FUJI_RPC, { timeout: 8_000, retryCount: 1 }),
+    });
+    const raw = await withTimeout(
+      publicClient.readContract({
+        address: FUJI_USDC,
+        abi: balanceOfAbi,
+        functionName: "balanceOf",
+        args: [address as Address],
+      }) as Promise<bigint>,
+      10_000,
+      "Balance read timed out",
+    );
+    balance = Number(formatUnits(raw, 6));
+  } catch {
+    // Fuji's public RPC is occasionally slow/rate-limited. The balance shown
+    // is informational only — don't block a successful wallet connection over it.
+  }
+
+  return { address, balance };
 }
 
 /** Base Sepolia has no real facilitator/contract wired up here — the network
@@ -110,9 +181,15 @@ export function makeSendPayment(payUrl: string, merchant: string) {
   ): Promise<{ txHash: string; seconds: number }> {
     if (network === "sepolia") return simulatePayment();
 
-    const provider = getProvider();
-    await ensureFuji(provider);
-    const [address] = (await provider.request({ method: "eth_requestAccounts" })) as string[];
+    const provider = await getProvider();
+    await withTimeout(ensureFuji(provider), 45_000, "Wallet didn't respond to the network switch. Check for a wallet popup, or try again.");
+    const accounts = await withTimeout(
+      provider.request({ method: "eth_requestAccounts" }) as Promise<string[]>,
+      45_000,
+      "Wallet didn't respond. Check for a wallet popup (it may be behind this window), or try again.",
+    );
+    const [address] = accounts;
+    if (!address) throw new Error("No account returned by the wallet.");
 
     const walletClient = createWalletClient({
       account: address as Address,
