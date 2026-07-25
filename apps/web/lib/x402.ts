@@ -22,10 +22,13 @@ export function payToAddress(): Address {
 /**
  * Facilitator that verifies + settles the payment.
  *
- * Undefined -> x402-next's default (x402.org, testnet). ARCHITECTURE.md picks the
- * thirdweb facilitator specifically because it settles Avalanche Fuji, so for a
- * real Fuji settlement set X402_FACILITATOR_URL to thirdweb's endpoint. If it
- * needs auth, extend this with `createAuthHeaders` using THIRDWEB_SECRET_KEY.
+ * Undefined -> x402-next's default (x402.org, testnet), which does NOT settle
+ * Fuji. We point X402_FACILITATOR_URL at PayAI
+ * (https://facilitator.payai.network): it lists `exact` on avalanche-fuji and
+ * needs no API key, so nothing secret is involved. Swapping facilitators is one
+ * env variable because only the URL is read here. If a future facilitator needs
+ * auth (thirdweb does), extend this with `createAuthHeaders` — never put a key
+ * in the URL. See docs/X402.md.
  */
 export function facilitatorConfig(): FacilitatorConfig | undefined {
   const url = process.env.X402_FACILITATOR_URL;

@@ -27,7 +27,7 @@ metered usage. Members also pay each other on the same rail. Chain is
 - Commits show **"Unverified"** on GitHub (no signing key in the sandbox). Cosmetic — ignore.
 
 ## Stack
-Avalanche Fuji (43113) · x402 (thirdweb facilitator) · USDC (+ future DNZD) ·
+Avalanche Fuji (43113) · x402 (PayAI facilitator) · USDC (+ future DNZD) ·
 Solidity 0.8.24 / Foundry (**evm_version = cancun**) · Next.js 14 App Router ·
 Privy · viem + wagmi · Supabase (not yet wired) · Vercel · pnpm monorepo.
 
@@ -72,10 +72,14 @@ deferred scope.
    left is the signer: `~/.foundry/keystores` is empty, so run
    `cast wallet import suiteas-deployer --interactive` and then broadcast. Exact
    commands: `docs/DEPLOY.md`. Lights up the pool counter and the AccessPass card.
-2. **x402 facilitator** — set `X402_FACILITATOR_URL` (+ `THIRDWEB_SECRET_KEY` if
-   it needs auth) so x402 actually settles on Fuji. Blocked: thirdweb is
-   unconfigured because the available plan appears paid. Smoke test: unpaid
-   `GET /api/protected` → 402; paid → balance rises at `payTo`.
+2. **x402 facilitator — no longer blocked.** `X402_FACILITATOR_URL` is set to
+   PayAI (`https://facilitator.payai.network`), which settles avalanche-fuji and
+   needs **no API key**, so the paid thirdweb plan is not required. Verified live:
+   `/supported` lists `exact` on avalanche-fuji, and unpaid `GET /api/protected`
+   returns a correct 402 quote (avalanche-fuji / Fuji USDC / 10000 atomic /
+   EIP-712 `{USD Coin, 2}`). **Remaining:** one paid click from a wallet holding
+   Fuji USDC, to confirm settlement and a tx hash in `x-payment-response`. That
+   needs a browser, so it cannot be done from a terminal. `docs/X402.md`.
 3. **dNZD — the "New Money" prize track. Inspected; blocked on the token.**
    Address/decimals/EIP-712 domain are confirmed on-chain and in config, but
    dNZD has **no EIP-3009**, so x402 cannot settle it. It has ERC-2612 `permit`,
@@ -102,7 +106,8 @@ Full list with required/optional/pending split: `.env.example` (web) and
 `contracts/.env.example` (deploy).
 - `NEXT_PUBLIC_PRIVY_APP_ID=cmrzbm07300en0djt6hnvzj5x` (set; public)
 - `X402_PAY_TO` — the `Suite` address (override with a dev wallet to test before deploy)
-- `X402_FACILITATOR_URL` / `THIRDWEB_SECRET_KEY` — **pending** (thirdweb account)
+- `X402_FACILITATOR_URL=https://facilitator.payai.network` — **set, verified.**
+  No auth, so `THIRDWEB_SECRET_KEY` stays empty. Also needs setting in Vercel.
 - `X402_SETTLEMENT_TOKEN_*` / `X402_PRICE_ATOMIC` — **leave empty.** All five or
   none, and dNZD cannot settle over x402 yet (`docs/DNZD.md`).
 - dNZD `0x99A22a5AD6B2fd7EefE512F49dc22336dEEdf877` — 6 dp, EIP-712 `{dNZD, 1}`,

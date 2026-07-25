@@ -58,9 +58,10 @@ Do not build around these; they are inputs, not work.
   to upgrade the token (it is a UUPS proxy, so they can without changing the
   address). **Writing an x402 scheme for ERC-2612 `permit` is out of scope** —
   that is protocol work, not configuration.
-- **x402 facilitator URL** (and a secret if it needs auth). Without it, live
-  Fuji settlement cannot be tested. thirdweb is unconfigured because the
-  available plan appears paid.
+- ~~**x402 facilitator URL.**~~ **Resolved, not blocked.** PayAI
+  (`https://facilitator.payai.network`) settles avalanche-fuji with no API key, so
+  the paid thirdweb plan was never needed. Verified live — `docs/X402.md`. What
+  remains is a paid click from a funded wallet, which needs a browser, not work.
 - **Fuji deployment.** Owner wallet has AVAX; the deploy script is written,
   tested locally and not run. See `docs/DEPLOY.md`.
 
