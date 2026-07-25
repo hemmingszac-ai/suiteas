@@ -28,7 +28,7 @@ export default function Dashboard() {
     <main className="mx-auto max-w-3xl px-6 py-12">
       <header className="mb-10 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Your Suiteas</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Your Suite as</h1>
           <p className="text-sm text-muted">One contribution, the whole bundle.</p>
         </div>
         <WalletStatus />
@@ -39,9 +39,9 @@ export default function Dashboard() {
       {/* The single primary action: pay a koha over x402. */}
       <div className="mt-8 flex flex-col items-center gap-3">
         <ContributeButton />
-        <p className="text-xs text-muted">Pay what you can — $0 still gets you in.</p>
+        <p className="text-xs text-muted">Pay what you can, $0 still gets you in.</p>
         <p className="max-w-sm text-center text-xs text-muted">
-          This wallet is your only identity here — no product in the bundle got your
+          This wallet is your only identity here, no product in the bundle got your
           personal details.
         </p>
       </div>

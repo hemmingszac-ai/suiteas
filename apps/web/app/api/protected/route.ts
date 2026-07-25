@@ -17,7 +17,7 @@ async function handler(_request: NextRequest) {
   return NextResponse.json({
     ok: true,
     resource: "premium-koha-content",
-    note: "Payment settled into the Suiteas pool.",
+    note: "Payment settled into the Suite as pool.",
   });
 }
 

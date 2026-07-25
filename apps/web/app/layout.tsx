@@ -4,8 +4,8 @@ import { Providers } from "@/components/providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Suiteas",
-  description: "One subscription, every tool. Pay-what-you-can, split on-chain.",
+  title: "Suite as",
+  description: "All of your tools, paid by Koha.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

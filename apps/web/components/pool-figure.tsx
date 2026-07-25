@@ -1,14 +1,14 @@
 "use client";
 
 /**
- * The pool counter — the demo's money shot. Presentational for now; wire it to
+ * The pool counter: the demo's money shot. Presentational for now; wire it to
  * Suite.poolBalance() (via wagmi useReadContract + watch) once the contract is
  * deployed and its address lands in packages/shared/addresses.json.
  */
 export function PoolFigure({ usd }: { usd?: number }) {
   const value =
     usd === undefined
-      ? "—"
+      ? "···"
       : usd.toLocaleString("en-US", { style: "currency", currency: "USD" });
 
   return (

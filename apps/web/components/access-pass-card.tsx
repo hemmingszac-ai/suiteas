@@ -4,7 +4,7 @@ import { useAccessPass } from "@/hooks/use-access-pass";
 import { PREVIEW_MOCK } from "@/lib/config/preview";
 
 /**
- * The AccessPass credential — makes the identity thesis tangible: a soulbound
+ * The AccessPass credential: makes the identity thesis tangible. A soulbound
  * membership pass bound to your wallet, no personal data attached. You're
  * identified by holding it, not by handing over your details.
  */
@@ -17,7 +17,7 @@ export function AccessPassCard() {
   return (
     <div className="mt-6 rounded-2xl border border-ink/10 p-6">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium">Suiteas AccessPass</span>
+        <span className="text-sm font-medium">Suite as AccessPass</span>
         <span
           className={`rounded-full px-2 py-0.5 text-xs ${
             has ? "bg-green-100 text-green-700" : "bg-ink/5 text-muted"
@@ -27,7 +27,7 @@ export function AccessPassCard() {
         </span>
       </div>
       <p className="mt-2 text-sm text-muted">
-        Your membership credential — soulbound to your wallet, no personal data
+        Your membership credential, soulbound to your wallet, no personal data
         attached. This is your identity across the bundle.
       </p>
       {has && id ? (

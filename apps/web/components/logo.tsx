@@ -1,29 +1,22 @@
 /**
- * Suiteas mark: a two-tone split circle sitting in a white disc.
- * The split reads as the pool being divided on-chain — the whole thesis in a glyph.
- * `size` is the diameter of the outer white disc in px.
+ * Suite as mark: two pillars crossed by a bar, the right half of the bar in
+ * accent red. Best-effort recreation from the provided reference image — swap
+ * this for the real asset (e.g. drop a favicon-64.png in apps/web/public and
+ * point this at it) once the source file is available.
  */
-export function Logo({ size = 36 }: { size?: number }) {
+export function Logo({ size = 32 }: { size?: number }) {
   return (
-    <span
-      className="inline-flex shrink-0 items-center justify-center rounded-full bg-paper ring-1 ring-ink/10"
-      style={{ width: size, height: size }}
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
       aria-hidden
     >
-      <svg
-        width={size * 0.62}
-        height={size * 0.62}
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        {/* dark half */}
-        <path d="M12 2a10 10 0 0 0 0 20V2Z" fill="#0b0d12" />
-        {/* accent half */}
-        <path d="M12 2a10 10 0 0 1 0 20V2Z" fill="#e84142" />
-        {/* seam */}
-        <line x1="12" y1="2" x2="12" y2="22" stroke="#ffffff" strokeWidth="1.5" />
-      </svg>
-    </span>
+      <rect x="10" y="1.5" width="4" height="21" fill="#0b0d12" />
+      <rect x="1.5" y="10" width="10.5" height="4" fill="#0b0d12" />
+      <rect x="12" y="10" width="10.5" height="4" fill="#e84142" />
+    </svg>
   );
 }

@@ -40,6 +40,6 @@ export const KOHA_ROUTE: RouteConfig = {
   price: process.env.X402_PRICE ?? "$0.01",
   network: X402_NETWORK,
   config: {
-    description: "A metered koha call — settles USDC into the Suiteas pool.",
+    description: "A metered koha call that settles USDC into the Suite as pool.",
   },
 };
