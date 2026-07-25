@@ -2,25 +2,64 @@
 
 Deploying `Suite` + `AccessPass` + `KohaRecord` to Avalanche Fuji, and running the split.
 
-**Nothing is deployed yet.** The scripts are written and rehearsed against a
-local anvil; the Fuji run is deliberately held until the dNZD token details
-arrive, so the pool is not deployed pointing at a token we intend to replace.
+## Deployed — Avalanche Fuji (43113), 2026-07-25
+
+| Contract | Address | Verified |
+|---|---|---|
+| `Suite` | `0x9CFE88A4d8AEBF32F27dbBaaa335990dd70A2385` | bytecode present; `settlementToken()` = Fuji USDC, `owner()` = owner/oracle |
+| `AccessPass` | `0x1408C2174B1B2815b65F5f4f8beb71cdCcAF6d5f` | bytecode **exact match** with the local build; `PASS` |
+| `KohaRecord` | `0x553FAC970312aDDBc1366eD6aa3A87F2cB29B477` | bytecode **exact match** with the local build; `KOHA` |
+| Settlement token | `0x5425890298aed601595a70AB815c96711a31Bc65` | Fuji USDC, `symbol()` = USDC, 6 dp |
+| Owner / oracle | `0xa7Dd13442d45450BE26843f6941B659555116bf1` | owns all three |
+
+Deployed against **Fuji USDC**, not dNZD — dNZD has no EIP-3009 so koha cannot
+settle into it over x402 (`docs/DNZD.md`). `Suite.settlementToken` is immutable,
+so moving to dNZD means deploying a second pool.
+
+Suite's on-chain bytecode differs from the local build in exactly 16 byte-ranges,
+all of which reassemble to the Fuji USDC address — the inlined `immutable`. Every
+other byte matches, so the deployed code is this repo's code.
+
+### Read the addresses from `packages/shared`, never from this table
+
+This table is a record for humans. Code reads
+`packages/shared/src/addresses.json` via `getAddress()`.
+
+### If a deploy is interrupted — read this before `--resume`
+
+The 2026-07-25 deploy timed out after `Suite` was mined and was completed with
+`--resume --slow`. That worked, but the **old** `Deploy.s.sol` then rewrote
+`deployments/43113.json` with addresses shifted by one, because a resumed run
+re-simulates from an already-advanced nonce. It was caught and corrected by hand.
+
+That cannot happen now: the script no longer writes the record, and `pnpm
+addresses` builds it from broadcast receipts and refuses any address without
+bytecode. **Always run `pnpm addresses` after a resume, and read its output** —
+it prints the bytecode size of each contract and cross-checks
+`Suite.settlementToken()`.
 
 ## Wallets (public addresses — safe here)
 
 | Role | Address | State |
 |---|---|---|
-| Owner / oracle / deployer | `0xa7Dd13442d45450BE26843f6941B659555116bf1` | 0.5 Fuji AVAX |
-| Demo payer | `0x32f720F098816BCfe19d694D81fF9Bd8e27DaFE4` | Fuji test USDC |
+| Owner / oracle / deployer | `0xa7Dd13442d45450BE26843f6941B659555116bf1` | deployed all three; nonce 3 |
+| Demo payer | `0x32f720F098816BCfe19d694D81fF9Bd8e27DaFE4` | 20 Fuji USDC, 0 AVAX (fine — x402 is gasless) |
 | Member recipients | not yet chosen | needed before broadcasting a split |
+
+Both are accounts on one Core wallet (same recovery phrase), testnet use only.
+Neither has ever transacted on Avalanche mainnet.
 
 The owner/oracle wallet owns all three contracts and is the only account that can
 call `Suite.distribute`, `AccessPass.mint` and `KohaRecord.record`.
 
-## The signing key never enters this repo
+## Signing
 
-Import it once into Foundry's keystore, which stores it encrypted under
-`~/.foundry/keystores`:
+The 2026-07-25 deploy was signed **from the browser wallet (Core)**, not from a
+Foundry keystore — no private key was ever exported or written to disk. That is
+the preferred route; keep using it.
+
+If a future step does need a local signer, import once into Foundry's keystore,
+which stores it encrypted under `~/.foundry/keystores`:
 
 ```bash
 cast wallet import suiteas-deployer --interactive     # paste the key at the prompt
@@ -29,6 +68,8 @@ cast wallet address --account suiteas-deployer        # confirm it matches the o
 
 Then every script call takes `--account suiteas-deployer` and prompts for the
 password. Do not put a private key in `.env`, in a script, or on a command line.
+In Core, "Show Private Key" is per-account (Account name → Options) and you must
+pick **C-Chain** — X/P-Chain derives a different key.
 
 ## Environment
 
@@ -50,32 +91,38 @@ cp contracts/.env.example contracts/.env
 `Deploy.s.sol` refuses any chain other than Fuji (43113) or a local node
 (31337), so a mainnet RPC cannot be broadcast to by accident.
 
-## 1. Deploy
+## 1. Deploy — **already done on Fuji**
+
+Kept for a re-deploy (e.g. a second pool against a different settlement token).
 
 ```bash
 cd contracts
 forge test -vvv                                    # green first
 
-# dry run — simulates, broadcasts nothing, writes no artifact
+# dry run — simulates, broadcasts nothing, writes nothing
 forge script script/Deploy.s.sol --rpc-url fuji
 
 # for real
 forge script script/Deploy.s.sol --rpc-url fuji --account suiteas-deployer --broadcast
 ```
 
-Then wire the addresses into the app:
+The addresses the script *prints* come from its simulation and are only correct on
+a clean, uninterrupted run. **Do not copy them anywhere.** Record them with:
 
 ```bash
 cd ..
-pnpm addresses          # deployments/43113.json -> packages/shared/src/addresses.json
+pnpm addresses          # broadcast receipts -> deployments/<chain>.json + addresses.json
 pnpm abis               # only if the contracts changed
 pnpm typecheck && pnpm build
 ```
 
-`pnpm addresses` writes `Suite`, `AccessPass`, `KohaRecord` and `SettlementToken`,
-leaving other keys alone. Never hand-edit an address into code.
+`pnpm addresses` reads `contracts/broadcast/Deploy.s.sol/<chainId>/run-latest.json`
+— the receipts, which are what the chain actually created — writes `Suite`,
+`AccessPass`, `KohaRecord` and `SettlementToken`, and leaves other keys alone. It
+aborts if any address has no bytecode or if the Suite slot does not answer
+`settlementToken()`. Never hand-edit an address into code.
 
-Optional sanity checks:
+Sanity checks (all read-only):
 
 ```bash
 cast call <SUITE> "settlementToken()(address)" --rpc-url fuji
@@ -84,7 +131,15 @@ cast call <SUITE> "poolBalance()(uint256)" --rpc-url fuji
 cast call <KOHA_RECORD> "totalRecorded()(uint256)" --rpc-url fuji
 ```
 
-## 2. Point x402 at the pool
+## 2. Point x402 at the pool — **done locally, PENDING in Vercel**
+
+`apps/web/.env.local` now has
+`X402_PAY_TO=0x9CFE88A4d8AEBF32F27dbBaaa335990dd70A2385` (the Suite pool) and
+`X402_FACILITATOR_URL=https://facilitator.payai.network`. Verified: the unpaid 402
+quote returns that `payTo`.
+
+**Both still need setting in the Vercel project** — the deployed site is otherwise
+quoting a zero `payTo`. `.env.local` is gitignored and never committed.
 
 In `apps/web/.env.local` **and** Vercel, set `X402_PAY_TO` to the deployed Suite
 address (or unset it so `addresses.json` supplies it). Confirm the smoke test in

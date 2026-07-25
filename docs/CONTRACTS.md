@@ -4,7 +4,8 @@ Minimal on-chain surface for the demo. Read before any Solidity.
 
 - **`Suite.sol`** — the shared pool. The core of the demo.
 - **`AccessPass.sol`** — soulbound membership credential (identity track).
-- **`UsageSplit.sol`** — pure library, the split arithmetic. Not deployed.
+- **`UsageSplit.sol`** — pure library, the split arithmetic. Not deployed (it is
+  `internal`, so it inlines into the caller; nothing to deploy).
 - **`KohaRecord.sol`** — the permanent giving record. **Never burns**; AccessPass
   burns on lapse, the giving record does not.
 
@@ -144,10 +145,13 @@ any chain but Fuji (43113) and a local node. It writes
 `packages/shared/src/addresses.json` (the source of truth) and `pnpm abis`
 refreshes `packages/shared/src/abis/`.
 
-**Not deployed yet.** The dNZD details have now arrived and are confirmed, but
-dNZD cannot settle over x402 (`docs/DNZD.md`), so the token choice is a judgement
-call rather than a formality — `docs/DEPLOY.md` lays out the two options. Deploy
-is still pending that call.
+**Deployed to Fuji on 2026-07-25**, against **Fuji USDC** — dNZD cannot settle
+over x402 (`docs/DNZD.md`), and `Suite.settlementToken` is immutable, so moving to
+dNZD means a second pool. Addresses and the full on-chain verification are in
+`docs/DEPLOY.md`; code reads them from `packages/shared/src/addresses.json`.
+
+`Suite` holds 0 and `period` is 0 — no koha has settled yet, which needs one paid
+browser payment.
 
 ### Fuji USDC address — verified
 

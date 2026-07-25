@@ -6,6 +6,18 @@ One subscription, every tool. Pay-what-you-can access to a bundle of indie SaaS 
 
 Built at Web3NZ Hackathon, University of Canterbury, 24–26 July 2026.
 
+## Live on Avalanche Fuji (43113)
+
+| Contract | Address |
+|---|---|
+| `Suite` (the pool — this is the x402 `payTo`) | `0x9CFE88A4d8AEBF32F27dbBaaa335990dd70A2385` |
+| `AccessPass` (soulbound membership, burns on lapse) | `0x1408C2174B1B2815b65F5f4f8beb71cdCcAF6d5f` |
+| `KohaRecord` (permanent giving record, never burns) | `0x553FAC970312aDDBc1366eD6aa3A87F2cB29B477` |
+
+Settling in Fuji USDC. Testnet only — never mainnet. Code reads these from
+`packages/shared/src/addresses.json`; never hardcode one. Verification details and
+the deploy runbook: `docs/DEPLOY.md`.
+
 ## Start here
 
 | If you are... | Read |
@@ -41,7 +53,7 @@ Flow 4 is the differentiator. Members are customers of each other, so the networ
 
 ## Stack
 
-Avalanche Fuji · x402 (thirdweb facilitator) · Fuji USDC (dNZD intended; blocked for x402, see `docs/DNZD.md`) · Foundry · Next.js 14 · Privy · Supabase (not yet wired) · Vercel
+Avalanche Fuji · x402 (PayAI facilitator — settles Fuji, no API key) · Fuji USDC (dNZD intended; blocked for x402, see `docs/DNZD.md`) · Foundry · Next.js 14 · Privy · Supabase (not yet wired) · Vercel
 
 ## The demo we are protecting
 

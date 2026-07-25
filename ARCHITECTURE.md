@@ -19,7 +19,7 @@ Blockchain is load-bearing in two places: the split has to be trustless or no Sa
 | x402 facilitator | PayAI (`facilitator.payai.network`) | Settles avalanche-fuji, no API key. thirdweb also works but wants a secret key on a paid-looking plan |
 | Middleware | `x402-next` | Drops into Next.js route handlers |
 | Currency | **Settlement token** — Fuji USDC today; dNZD intended but blocked for x402 (no EIP-3009, see `docs/DNZD.md`) | EIP-3009 path = gasless, no approval step. Configurable, not hardcoded — see `docs/X402.md` |
-| Contracts | Solidity ^0.8.24 + Foundry | Only two contracts — x402 does the payment work |
+| Contracts | Solidity ^0.8.24 + Foundry | Three small contracts — x402 does the payment work. **Deployed + verified on Fuji**, see `docs/DEPLOY.md` |
 | Web | Next.js 14 App Router + TypeScript | One framework for UI and API routes |
 | Auth | Privy | Email → embedded Avalanche wallet, no seed phrase |
 | Off-chain DB | Supabase | Usage attestations, member records, API keys |
@@ -90,3 +90,8 @@ KohaRecord accrues (permanent), AccessPass stays live while subscribed
 1. **Usage metering is off-chain**, posted by an oracle wallet. Centralised. Roadmap: multi-sig attestations → TEE → ZK usage proofs.
 2. **The x402 facilitator is a trusted third party** for settlement sponsorship. Mitigated by the protocol design (facilitators cannot move funds outside agreed terms) but worth naming.
 3. **Testnet only.** No real money touches this weekend.
+4. **The pool is empty and the split has not run on Fuji.** The contracts are
+   deployed and verified, but `Suite.poolBalance()` is 0 and `period` is 0 — one
+   paid browser payment and a set of member recipient addresses are what stand
+   between "deployed" and "demonstrated". Say that rather than implying the loop
+   has already closed on-chain.

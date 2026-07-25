@@ -12,7 +12,7 @@ Fuji (43113) in all four.
 |---|---|---|
 | 1 | User → Pool, subscribe (escrow-gated) | **not built** |
 | 2 | User → Pool, micro-koha over x402 | **built** — unpaid 402 verified; live settlement blocked on a facilitator URL |
-| 3 | Pool → Members, split by usage | **built** — `Suite.distribute` + seeded usage script, rehearsed locally, not deployed |
+| 3 | Pool → Members, split by usage | **built + deployed to Fuji** — `Suite.distribute` + seeded usage script. Not yet run on Fuji: needs member recipient addresses and a non-zero pool |
 | 4 | Member ↔ Member | **not built** — the differentiator |
 
 ---

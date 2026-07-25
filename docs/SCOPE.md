@@ -62,8 +62,11 @@ Do not build around these; they are inputs, not work.
   (`https://facilitator.payai.network`) settles avalanche-fuji with no API key, so
   the paid thirdweb plan was never needed. Verified live — `docs/X402.md`. What
   remains is a paid click from a funded wallet, which needs a browser, not work.
-- **Fuji deployment.** Owner wallet has AVAX; the deploy script is written,
-  tested locally and not run. See `docs/DEPLOY.md`.
+- ~~**Fuji deployment.**~~ **Done 2026-07-25** — all three contracts live and
+  verified on-chain, signed from the Core browser wallet. See `docs/DEPLOY.md`.
+- **Vercel env vars** (`X402_PAY_TO`, `X402_FACILITATOR_URL`) and **one paid
+  browser payment**. The last two launch blockers, both external. Not work — do
+  not build around them.
 
 ## The test to apply
 
